@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 pub struct UserProfile {
     pub user: Pubkey, // Владелец профиля
     pub init_time: u64, // Время инициализации профиля
-    #[max_len(100)]
+    #[max_len(10)]
     pub staked_tokens: Vec<Pubkey>, // Список токенов, которыми владеет пользователь
 }
 
