@@ -4,6 +4,7 @@ pub mod state;
 pub mod instructions;
 pub use instructions::*;
 pub mod errors;
+pub mod helpers;
 
 declare_id!("6RhWcSV1oJgZdzZZDDD7qiRu4zjaDKW6xJueHxnF2ghN");
 
@@ -17,5 +18,9 @@ pub mod staking {
 
     pub fn program_stake_tokens(ctx: Context<InitializeUserSecondLevel>, amount: u64) -> Result<()> {
         instructions::stake_tokens(ctx, amount)
+    }
+
+    pub fn transfer_user_tokens(ctx: Context<TransferTokens>, amount: u64) -> Result<()> {
+        instructions::transfer_tokens(ctx, amount)
     }
 }

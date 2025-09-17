@@ -1,5 +1,6 @@
-use crate::user_contexts::{InitializeUserFirstLevel, InitializeUserSecondLevel};
-use anchor_lang::prelude::*;
+use crate::{user_contexts::{InitializeUserFirstLevel, InitializeUserSecondLevel, TransferTokens}};
+use anchor_lang::{accounts::signer, prelude::*};
+use anchor_spl::token::TransferChecked;
 use crate::errors::ErrorCode;
 
 /// Предполагается, что эта инструкция вызывается один раз для каждого пользователя, чтобы создать его профиль.
@@ -15,10 +16,12 @@ pub fn initialize_user_first_level(ctx: Context<InitializeUserFirstLevel>) -> Re
     Ok(())
 }
 
+/// Инициализация второго уровня происходит в момент стейкинга конкретного токена.
 pub fn stake_tokens(
     ctx: Context<InitializeUserSecondLevel>,
     amount: u64,
 ) -> Result<()> {
+
     let user_token = &mut ctx.accounts.user_token;
     let user_profile = &mut ctx.accounts.user_profile;
 
@@ -38,6 +41,46 @@ pub fn stake_tokens(
     user_token.reward_debt = 0;
     user_token.last_reward_time = Clock::get()?.unix_timestamp as u64;
     user_token.ata = ctx.accounts.ata.key();
+
+    Ok(())
+}
+
+
+/// Перевод токенов (staking)
+pub fn transfer_tokens(
+    ctx: Context<TransferTokens>, 
+    amount: u64
+) -> Result<()> {
+    let bump = ctx.bumps.user_token;
+
+    let signer_key = ctx.accounts.signer.key();
+    let mint_key = ctx.accounts.mint.key();
+
+    let signer_seeds: &[&[u8]] = &[
+        b"user-token",
+        signer_key.as_ref(),
+        mint_key.as_ref(),
+        &[bump],
+    ];
+    let signer_seeds_array = [signer_seeds];
+
+    let cpi_accounts = TransferChecked {
+        from: ctx.accounts.sender_token_account.to_account_info(),
+        mint: ctx.accounts.mint.to_account_info(),
+        to: ctx.accounts.recipient_token_account.to_account_info(),
+        authority: ctx.accounts.user_token.to_account_info(),
+    };
+
+    let cpi_ctx = CpiContext::new(
+        ctx.accounts.token_program.to_account_info(),
+        cpi_accounts,
+    ).with_signer(&signer_seeds_array);
+
+    anchor_spl::token::transfer_checked(
+        cpi_ctx, 
+        amount, 
+        ctx.accounts.mint.decimals,
+    )?;
 
     Ok(())
 }
