@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Slider from 'rc-slider'
 import 'rc-slider/assets/index.css'
-import {ApyComponent, MainTop} from "./_components/main_ui"
+import {ApyComponent, MainTop} from "../components/pages/main/main_ui"
 import { useRouter } from 'next/navigation'
 
 export default function Home() {
