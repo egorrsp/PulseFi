@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "../store/useUserStore";
 import { PublicKey } from "@solana/web3.js";
 import { CONFIG } from "../../config";
+import { UserToken } from "@/types/programId";
 
 export function useUserProfile() {
   const program = useUserStore((s) => s.program);
@@ -19,7 +20,7 @@ export function useUserProfile() {
       );
 
       const account = await program.account.userProfile.fetch(pda);
-      return account;
+      return account as UserToken | undefined;
     },
   });
 }

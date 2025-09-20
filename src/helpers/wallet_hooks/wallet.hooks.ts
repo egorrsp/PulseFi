@@ -4,7 +4,7 @@ import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import Idl from "../../../staking/target/idl/staking.json"
 import {Connection, PublicKey} from "@solana/web3.js";
 import {AnchorProvider, Program} from '@coral-xyz/anchor';
-import { use, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
 
 export function wallet_hooks() {
@@ -32,25 +32,42 @@ export function wallet_hooks() {
 }
 
 export function user_profile_info() {
-    const wallet = useWallet();
     const publicKey = useUserStore((s) => s.publicKey);
     const program = useUserStore((s) => s.program);
+    const connected = useUserStore((s) => s.connected);
 
-    if (useUserStore((s) => s.connected) || !publicKey || !program) {
+    if (!connected || !publicKey || !program) {
         throw new Error("No wallet connected");
     }
 
     const [pda, bump] = PublicKey.findProgramAddressSync(
         [Buffer.from("user-profile"), new PublicKey(publicKey).toBuffer()],
         new PublicKey(program.programId)
-    )
+    );
 
-    return (pda as PublicKey, bump)
+    return [pda, bump] as [PublicKey, number];
 }
 
 export function token_storage_info() {
-    const wallet = useWallet();
     const publicKey = useUserStore((s) => s.publicKey);
+    const program = useUserStore((s) => s.program);
+    const connected = useUserStore((s) => s.connected);
+    const mints = useUserStore((s) => s.mint);
 
+    if (!connected || !publicKey || !program) {
+        throw new Error("No wallet connected");
+    }
 
+    if (!mints || mints.length === 0) {
+        throw new Error("No mints found");
+    }
+
+    const result: Array<[PublicKey, number]> = mints.map((mint) =>
+        PublicKey.findProgramAddressSync(
+            [Buffer.from("token-storage"), new PublicKey(publicKey).toBuffer(), new PublicKey(mint).toBuffer()],
+            new PublicKey(program.programId)
+        )
+    );
+
+    return result;
 }

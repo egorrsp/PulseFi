@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
     ConnectionProvider,
@@ -10,6 +10,7 @@ import {
     PhantomWalletAdapter,
     SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export function Providers({ children }: { children: ReactNode }) {
     const network = WalletAdapterNetwork.Testnet;
@@ -20,11 +21,15 @@ export function Providers({ children }: { children: ReactNode }) {
         []
     );
 
+    const [queryClient] = useState(() => new QueryClient());
+
     return (
-        <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect>
-                {children}
-            </WalletProvider>
-        </ConnectionProvider>
+        <QueryClientProvider client={queryClient}>
+            <ConnectionProvider endpoint={endpoint}>
+                <WalletProvider wallets={wallets} autoConnect>
+                    {children}
+                </WalletProvider>
+            </ConnectionProvider>
+        </QueryClientProvider>
     );
 }

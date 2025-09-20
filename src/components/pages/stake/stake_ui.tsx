@@ -25,7 +25,7 @@ export function TopStakeInfo({ publicKey }: StakeInfoProps) {
                         Wallet address: 
                         <span 
                             className='group-hover:bg-[#e2e2e2] p-1 rounded-md easy-in-out duration-100 cursor-pointer active:bg-[#eeeeee]'
-                            onClick={() => {navigator.clipboard.writeText(publicKey?.toBase58())}}
+                            onClick={() => {navigator.clipboard.writeText(publicKey)}}
                         >
                             {publicKey}
                         </span>
@@ -38,7 +38,7 @@ export function TopStakeInfo({ publicKey }: StakeInfoProps) {
 }
 
 interface WalletStakeInfoProps {
-    amountStaked?: number;
+    amountStaked?: bigint;
     awardsPaid?: number;
     lastPaymentDate?: string;
 }
