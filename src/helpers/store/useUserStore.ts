@@ -3,7 +3,7 @@ import { create } from "zustand";
 interface UserState {
   publicKey?: string;
   connected: boolean;
-  mint?: Array<string>;
+  mint?: string[];
   provider?: any;
   program?: any;
   updateUser: (userData: Partial<UserState>) => void;
@@ -13,7 +13,7 @@ interface UserState {
 export const useUserStore = create<UserState>((set) => ({
   publicKey: undefined,
   connected: false,
-  mint: new Array<string>(),
+  mint: [],
   provider: undefined,
   program: undefined,
 

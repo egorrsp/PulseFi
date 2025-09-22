@@ -2,16 +2,17 @@
 
 import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import Idl from "../../../staking/target/idl/staking.json"
-import {Connection, PublicKey} from "@solana/web3.js";
-import {AnchorProvider, Program} from '@coral-xyz/anchor';
+import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
+import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
+import { UserProfile } from '@/types/programId';
 
 export function wallet_hooks() {
-    const {publicKey, connected} = useWallet();
+    const { publicKey, connected } = useWallet();
     const connection = new Connection("http://127.0.0.1:8899", "confirmed");
     const anchorWallet = useAnchorWallet();
-    
+
     const programId = new PublicKey(Idl.address);
     const provider = anchorWallet ? new AnchorProvider(connection, anchorWallet, { commitment: "confirmed" }) : null;
 
@@ -20,7 +21,7 @@ export function wallet_hooks() {
         return new Program(Idl, provider);
     }, [provider])
 
-    return(
+    return (
         {
             publicKey,
             connected,
@@ -70,4 +71,31 @@ export function token_storage_info() {
     );
 
     return result;
+}
+
+export const calcUserProfile = async (pda: PublicKey) => {
+    
+    const program = useUserStore((s) => s.program);
+    const publicKey = useUserStore((s) => s.publicKey);
+
+    let account: UserProfile
+
+    if (!program || !publicKey) {
+        return ("Missing program").toString();
+    }
+
+    try {
+        await program.methods
+            .programInitializeUserFirstLevel()
+            .accounts({
+                user_profile: pda,
+                user: new PublicKey(publicKey),
+                system_program: SystemProgram.programId,
+            })
+            .rpc();
+        account = await program.account.userProfile.fetch(pda);
+    } catch (err: any) {
+        console.warn("Failed to initialize user profile:", err.message);
+        return { ready: false, error: err.message };
+    }
 }
