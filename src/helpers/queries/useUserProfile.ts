@@ -12,13 +12,12 @@ export function useUserProfile() {
     ready: boolean;
     account?: UserProfile;
     error?: string;
-    pda: PublicKey;
   }>({
     queryKey: ["userProfile", publicKey],
     enabled: !!program && !!publicKey,
     retry: false,
     queryFn: async () => {
-      if (!program || !publicKey) return { ready: false, error: "No wallet", pda: null! };
+      if (!program || !publicKey) return { ready: false, error: "No wallet" };
 
       const [pda] = PublicKey.findProgramAddressSync(
         [Buffer.from("user-profile"), new PublicKey(publicKey).toBuffer()],
@@ -33,7 +32,7 @@ export function useUserProfile() {
         throw new Error("User profile not found");
       }
 
-      return { ready: true, account: account ?? undefined, pda };
+      return { ready: true, account: account ?? undefined };
     },
   });
 }

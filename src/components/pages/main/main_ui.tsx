@@ -1,6 +1,6 @@
 export const MainTop = () => {
     return (
-        <div className="flex flex-row justify-between items-center gap-16">
+        <div className="flex sm:flex-row flex-col justify-between items-center gap-16">
             <div>
                 <h4 className="text-6xl font-sans font-semibold text-[#111827]">
                     PulseFi
@@ -8,7 +8,7 @@ export const MainTop = () => {
                 <p className='text-[#111827] text-md'>Secure. Transparent. Rewarding.</p>
             </div>
             <div className="flex flex-row justify-end items-center gap-5">
-                <h2 className="text-2xl font-sans text-[#22C55E] max-w-2xl text-left border-l-2 border-[#22C55E] pl-16">
+                <h2 className="text-2xl font-sans text-[#22C55E] max-w-2xl text-left sm:border-l-2 sm:border-t-0 border-t-2 border-[#22C55E] md:pl-16 sm:pl-8 pl-0 sm:pt-0 pt-8">
                     A decentralized Solana-based platform that lets you grow your tokens, earn competitive rewards, and stay in control of your funds at all times.
                 </h2>
             </div>
@@ -50,8 +50,8 @@ export const SupportedTokens = () => {
                 </p>
             </div>
 
-            <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-8">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/solana.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">Solana (SOL)</h3>
@@ -61,7 +61,7 @@ export const SupportedTokens = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/Bonk.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">Bonk (BONK)</h3>
@@ -71,7 +71,7 @@ export const SupportedTokens = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/Chainlink.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">Chainlink (LINK)</h3>
@@ -81,7 +81,7 @@ export const SupportedTokens = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/PudgyPenguins.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">Pudgy Penguins</h3>
@@ -91,7 +91,7 @@ export const SupportedTokens = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/Render.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">Render (RNDR)</h3>
@@ -101,7 +101,7 @@ export const SupportedTokens = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/Aave.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">Aave (AAVE)</h3>
@@ -111,7 +111,7 @@ export const SupportedTokens = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/Uniswap.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">Uniswap (UNI)</h3>
@@ -121,7 +121,7 @@ export const SupportedTokens = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
                     <img src="/tokens/WorldLibertyFinancial.png" className="w-12 h-12 rounded-full" />
                     <div>
                         <h3 className="text-xl font-semibold">World Liberty Financial (WLF)</h3>
@@ -132,7 +132,7 @@ export const SupportedTokens = () => {
                 </div>
             </div>
 
-            <p className="font-sans">
+            <p className="font-sans text-2xl pt-5 italic">
                 We support all major tokens and continuously expand our list — explore the full catalog in the
                 <span className="text-[#2563EB] font-semibold"> Institutions</span> tab.
             </p>

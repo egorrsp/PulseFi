@@ -1,6 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
+import { CONFIG } from "../config";
 
-export const PROGRAM_ID = new PublicKey("6RhWcSV1oJgZdzZZDDD7qiRu4zjaDKW6xJueHxnF2ghN");
+export const PROGRAM_ID = new PublicKey(CONFIG.programId);
 
 // === Accounts ===
 export interface UserProfile {
@@ -20,8 +21,8 @@ export interface UserToken {
 
 // === Errors ===
 export enum StakingErrors {
-  MaxStakedTokensReached = 6000,
-  Overflow = 6001,
+  MaxStakedTokensReached = 10,
+  Overflow = 11,
 }
 
 // === Instructions ===

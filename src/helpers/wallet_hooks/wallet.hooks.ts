@@ -2,15 +2,16 @@
 
 import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import Idl from "../../../staking/target/idl/staking.json"
-import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import { AnchorProvider, Program } from '@coral-xyz/anchor';
-import { useMemo } from 'react';
+import { use, useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
 import { UserProfile } from '@/types/programId';
+import { CONFIG } from '@/config';
 
 export function wallet_hooks() {
     const { publicKey, connected } = useWallet();
-    const connection = new Connection("http://127.0.0.1:8899", "confirmed");
+    const connection = new Connection(CONFIG.network, "confirmed");
     const anchorWallet = useAnchorWallet();
 
     const programId = new PublicKey(Idl.address);
@@ -73,15 +74,15 @@ export function token_storage_info() {
     return result;
 }
 
-export const calcUserProfile = async (pda: PublicKey) => {
-    
-    const program = useUserStore((s) => s.program);
-    const publicKey = useUserStore((s) => s.publicKey);
-
-    let account: UserProfile
+export const createUserProfile = async (
+    pda: PublicKey,
+    program: any,
+    publicKey: string
+) => {
+    let account: UserProfile;
 
     if (!program || !publicKey) {
-        return ("Missing program").toString();
+        return { ready: false, error: "Missing program or publicKey" };
     }
 
     try {
@@ -93,9 +94,61 @@ export const calcUserProfile = async (pda: PublicKey) => {
                 system_program: SystemProgram.programId,
             })
             .rpc();
+
         account = await program.account.userProfile.fetch(pda);
+        console.log("done")
+        return { ready: true, account };
     } catch (err: any) {
         console.warn("Failed to initialize user profile:", err.message);
         return { ready: false, error: err.message };
     }
+};
+
+export function findUserProfile() {
+    const publicKey = useUserStore((s) => s.publicKey);
+    const program = useUserStore((s) => s.program);
+
+    if (!publicKey || !program) {
+        throw Error("Can't find publicKey");
+    }
+
+    const [pda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("user-profile"), new PublicKey(publicKey).toBuffer()],
+        CONFIG.programId
+    );
+
+    return pda;
+}
+
+export function findUserStorage(){
+    const PublicKey = useUserStore((s) => s.publicKey);
+
+}
+
+export async function updateTokenRecordsInProfile() {
+    
+}
+
+// dev only
+export async function requestAirdropForLocalDev() {
+    const connection = new Connection(CONFIG.network, "confirmed");
+
+    const { publicKey } = useUserStore.getState();
+
+    if (!connection || !publicKey) {
+        console.error("Connection is not established");
+        return;
+    }
+
+    const airdropSig = await connection.requestAirdrop(
+        new PublicKey(publicKey),
+        2 * LAMPORTS_PER_SOL
+    );
+
+    await connection.confirmTransaction(airdropSig, "confirmed");
+
+    console.log("Airdrop requested");
+
+    const balance = await connection.getBalance(new PublicKey(publicKey));
+    console.log("Balance:", balance / LAMPORTS_PER_SOL, "SOL");
 }

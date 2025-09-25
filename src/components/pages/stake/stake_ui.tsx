@@ -1,12 +1,14 @@
-import { calcUserProfile } from "@/helpers/wallet_hooks/wallet.hooks";
+import { createUserProfile } from "@/helpers/wallet_hooks/wallet.hooks";
 import { useRouter } from "next/navigation";
+import { findUserProfile } from "@/helpers/wallet_hooks/wallet.hooks"
+import { useUserStore } from "@/helpers/store/useUserStore";
 import { PublicKey } from "@solana/web3.js";
+import { useUserProfile } from "@/helpers/queries/useUserProfile";
 
-interface StakeInfoProps {
-    publicKey: any;
-}
+export function TopStakeInfo() {
 
-export function TopStakeInfo({ publicKey }: StakeInfoProps) {
+    const publicKey = useUserStore((s) => s.publicKey);
+
     return (
         <div className="flex md:flex-row flex-col justify-between items-center gap-16">
             <div>
@@ -27,12 +29,14 @@ export function TopStakeInfo({ publicKey }: StakeInfoProps) {
                         className='font-sans'
                     >
                         Wallet address:
-                        <span
-                            className='group-hover:bg-[#e2e2e2] p-1 rounded-md easy-in-out duration-100 cursor-pointer active:bg-[#eeeeee]'
-                            onClick={() => { navigator.clipboard.writeText(publicKey) }}
-                        >
-                            {publicKey}
-                        </span>
+                        {publicKey && (
+                            <span
+                                className='group-hover:bg-[#e2e2e2] p-1 rounded-md easy-in-out duration-100 cursor-pointer active:bg-[#eeeeee]'
+                                onClick={() => { navigator.clipboard.writeText(publicKey) }}
+                            >
+                                {publicKey}
+                            </span>
+                        )}
                     </p>
                     <p className="absolute right-0 top-5 group-hover:opacity-100 opacity-0 text-[#afafaf] easy-in-out duration-100">copy to clipboard</p>
                 </div>
@@ -42,24 +46,16 @@ export function TopStakeInfo({ publicKey }: StakeInfoProps) {
 }
 
 interface WalletStakeInfoProps {
-    amountStaked?: bigint;
-    awardsPaid?: bigint;
-    lastPaymentDate?: string;
+    registerDate?: string;
+    tokens?: PublicKey[];
     err?: string;
 }
 
 export function WalletStakeInfo(props: WalletStakeInfoProps) {
-    const { amountStaked, awardsPaid, lastPaymentDate, err } = props;
+    const { registerDate, tokens, err } = props;
 
-    const allFieldsMissing =
-        amountStaked === undefined &&
-        awardsPaid === undefined &&
-        lastPaymentDate === undefined;
-
-    const allFieldsPresent =
-        amountStaked !== undefined &&
-        awardsPaid !== undefined &&
-        lastPaymentDate !== undefined;
+    const allFieldsMissing = registerDate === undefined;
+    const allFieldsPresent = Boolean(registerDate);
 
     return (
         <div className="flex flex-row justify-between items-center gap-5">
@@ -71,37 +67,38 @@ export function WalletStakeInfo(props: WalletStakeInfoProps) {
                 ) : allFieldsPresent ? (
                     <>
                         <div className="flex flex-row justify-start items-center gap-5">
-                            <p className="text-2xl">Staked:</p>
-                            <p className="text-2xl">{amountStaked} $</p>
+                            <p className="text-2xl">Registration date:</p>
+                            <p className="text-2xl">{registerDate}</p>
                         </div>
-                        <div className="flex flex-row justify-start items-center gap-5">
-                            <p className="text-2xl">Awards paid:</p>
-                            <p className="text-2xl">{awardsPaid} $</p>
-                        </div>
-                        <div className="flex flex-row justify-start items-center gap-5">
-                            <p className="text-2xl">Last payment date:</p>
-                            <p className="text-2xl">{lastPaymentDate}</p>
+                        <div className="flex flex-col justify-start items-start gap-2">
+                            <p className="text-2xl">Tokens:</p>
+                            {tokens?.map((element, idx) => (
+                                <p key={idx} className="mt-2 text-xl break-all">
+                                    {element.toBase58()}
+                                </p>
+                            ))}
                         </div>
                     </>
+                ) : err ? (
+                    <p className="text-2xl text-red-500">{err}</p>
                 ) : (
-                    err ? (
-                        <p className="text-2xl text-red-500">{err}</p>
-                    ) : (
-                        <p className="text-2xl text-red-500">Error, please reload</p>
-                    )
+                    <p className="text-2xl text-red-500">Error, please reload</p>
                 )}
             </div>
         </div>
     );
 }
 
-interface CreateUserProfileUIProps {
-    pda?: PublicKey
-}
-
-export function CreateUserProfileUI({ pda }: CreateUserProfileUIProps) {
+export function CreateUserProfileUI() {
 
     const router = useRouter();
+
+    const pda = findUserProfile();
+
+    const program = useUserStore((s) => s.program);
+    const publicKey = useUserStore((s) => s.publicKey);
+
+    const userQuery = useUserProfile();
 
     let isError = false;
     if (!pda) {
@@ -133,7 +130,9 @@ export function CreateUserProfileUI({ pda }: CreateUserProfileUIProps) {
                             if (!pda) {
                                 return;
                             }
-                            calcUserProfile(pda);
+                            if (!pda || !program || !publicKey) return;
+                            createUserProfile(pda, program, publicKey);
+                            userQuery.refetch()
                         }}
                     >
                         Create
@@ -152,4 +151,26 @@ export function CreateUserProfileUI({ pda }: CreateUserProfileUIProps) {
             </div>
         </div>
     )
+}
+
+export function StakeButton() {
+
+    const router = useRouter();
+
+    return (
+        <button 
+            className="w-full py-3 border-2 border-[#22C55E] text-center rounded-md uppercase hover:bg-[#22C55E] duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none"
+            onClick={() => router.push('/stake/transfer')}
+        >
+            Stake
+        </button>
+    );
+}
+
+export function UnstakeButton() {
+    return (
+        <button className="w-full py-3 border-2 border-red-500 text-center rounded-md uppercase hover:bg-red-500 duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none">
+            Unstake
+        </button>
+    );
 }

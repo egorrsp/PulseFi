@@ -1,54 +1,64 @@
 'use client'
 
 import { ConnectButton } from "@/helpers/wallet_hooks/connect.button";
-import { CreateUserProfileUI, TopStakeInfo, WalletStakeInfo } from "@/components/pages/stake/stake_ui";
+import { CreateUserProfileUI, StakeButton, TopStakeInfo, WalletStakeInfo, UnstakeButton } from "@/components/pages/stake/stake_ui";
 import { useUserStore } from "@/helpers/store/useUserStore";
 import { useUserProfile } from "@/helpers/queries/useUserProfile";
 import { UserProfile } from "@/types/programId";
 import { useEffect, useState } from "react";
-import { PublicKey } from "@solana/web3.js";
+
+//dev only
+import { requestAirdropForLocalDev } from "@/helpers/wallet_hooks/wallet.hooks";
 
 export default function Page() {
-  const publicKey = useUserStore((s) => s.publicKey);
-  const connected = useUserStore((s) => s.connected);
+    const connected = useUserStore((s) => s.connected);
 
-  const userQuery = useUserProfile();
-  const [user, setUser] = useState<{
-    ready: boolean;
-    account?: UserProfile;
-    error?: string;
-    pda: PublicKey;
-  } | null>(null);
+    const userQuery = useUserProfile();
+    const [user, setUser] = useState<{
+        ready: boolean;
+        account?: UserProfile;
+        error?: string;
+    } | null>(null);
 
-  useEffect(() => {
-    if (userQuery.data?.pda && !user) {
-      const { ready, account, error, pda } = userQuery.data;
-      setUser({ ready, account, error, pda });
-    }
-  }, [userQuery.data, user]);
+    useEffect(() => {
+        if (userQuery.data?.ready && !user) {
+            const { ready, account, error } = userQuery.data;
+            setUser({ ready, account, error });
+        }
+    }, [userQuery.data, user]);
 
-  if (userQuery.isLoading) return <div>Loading...</div>;
+    if (userQuery.isLoading) return <div>Loading...</div>;
 
-  return (
-    <>
-      {!userQuery.isError && user ? (
-        <div className="flex flex-col gap-16">
-          <TopStakeInfo publicKey={publicKey} />
-          <WalletStakeInfo
-            amountStaked={BigInt(1000)}
-            awardsPaid={BigInt(150)}
-            lastPaymentDate="2024-06-01"
-            err={user.error}
-          />
-        </div>
-      ) : connected ? (
-        <CreateUserProfileUI pda={userQuery.data?.pda} />
-      ) : (
-        <div>
-          <p>Пожалуйста, подключите кошелек</p>
-          <ConnectButton />
-        </div>
-      )}
-    </>
-  );
+    return (
+        <>
+            {!userQuery.isError && user ? (
+                <div className="flex flex-col gap-16">
+                    <TopStakeInfo />
+                    <div className="flex md:flex-row flex-col gap-5">
+                        <StakeButton />
+                        <UnstakeButton />
+                    </div>
+                    <WalletStakeInfo
+                        registerDate="2024-06-01"
+                        err={user.error}
+                    />
+                </div>
+            ) : connected ? (
+                <CreateUserProfileUI />
+            ) : (
+                <div>
+                    <p>Пожалуйста, подключите кошелек</p>
+                    <ConnectButton />
+                </div>
+            )}
+
+            {/*  dev only  */}
+            <button 
+                className="px-3 py-2 bg-amber-600 active:bg-amber-400 text-black font-sans duration-200 cursor-pointer mt-40 rounded-sm"
+                onClick={() => requestAirdropForLocalDev()}
+            >
+                Airdrop (lochal)
+            </button>
+        </>
+    );
 }

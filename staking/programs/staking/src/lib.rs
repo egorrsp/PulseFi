@@ -6,7 +6,7 @@ pub use instructions::*;
 pub mod errors;
 pub mod helpers;
 
-declare_id!("6RhWcSV1oJgZdzZZDDD7qiRu4zjaDKW6xJueHxnF2ghN");
+declare_id!("61GA5Ajf6MzwJNWZQscN1WffG1M8WuExyb3Mpg9M8xEn");
 
 #[program]
 pub mod staking {

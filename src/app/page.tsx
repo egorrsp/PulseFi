@@ -18,8 +18,8 @@ export default function Home() {
 
             <MainTop />
 
-            <div className="w-full p-10 bg-gray-200 flex flex-row gap-6 rounded-lg">
-                <div className="flex flex-col gap-3 w-1/2">
+            <div className="w-full md:p-10 p-5 bg-gray-200 flex sm:flex-row flex-col gap-6 rounded-lg">
+                <div className="flex flex-col gap-3 sm:w-1/2">
                     <h1 className="font-sans text-[#111827] text-md">Amount to stake</h1>
                     <div className="flex items-center gap-4">
                         <span className="text-xl font-medium text-[#2563EB]">${amount}</span>
@@ -42,7 +42,7 @@ export default function Home() {
                     />
                 </div>
 
-                <div className='w-1/2 flex flex-col gap-3'>
+                <div className='sm:w-1/2 flex flex-col gap-3'>
                     <button
                         className='bg-[#2563EB] text-white text-xl font-medium rounded-lg px-3 py-1 hover:bg-blue-700 duration-150 cursor-pointer'
                         onClick={() => router.push('/stake')}
