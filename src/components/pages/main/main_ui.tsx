@@ -1,3 +1,7 @@
+import { loadTokenList, TokenConfig } from "@/helpers/lists/token_list";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 export const MainTop = () => {
     return (
         <div className="flex sm:flex-row flex-col justify-between items-center gap-16">
@@ -41,6 +45,32 @@ export const ApyComponent = ({ apy }: ApyProps) => {
 }
 
 export const SupportedTokens = () => {
+
+    const [tokens, setTokens] = useState<TokenConfig[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    const router = useRouter();
+
+    useEffect(() => {
+        let mounted = true;
+        loadTokenList()
+            .then(list => {
+                if (!mounted) return;
+                setTokens(list);
+            })
+            .catch((e) => {
+                console.error("Failed to load token list", e);
+                if (!mounted) return;
+                setError("Failed to load tokens");
+                setTokens([]);
+            });
+        return () => { mounted = false; };
+    }, []);
+
+    if (error) return <p>{error}</p>;
+    if (tokens === null) return <p>Loading tokens...</p>;
+    if (tokens.length === 0) return <p>No tokens available</p>;
+
     return (
         <div className="w-full flex flex-col gap-10 rounded-lg">
             <div>
@@ -50,86 +80,20 @@ export const SupportedTokens = () => {
                 </p>
             </div>
 
-            <div className="flex flex-col gap-8">
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/solana.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">Solana (SOL)</h3>
-                        <p className="text-gray-600">
-                            The high-performance blockchain powering scalable applications and DeFi on Solana.
-                        </p>
-                    </div>
-                </div>
+            <div className="grid lg:grid-cols-3 grid-cols-1 gap-8">
 
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/Bonk.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">Bonk (BONK)</h3>
-                        <p className="text-gray-600">
-                            The community-driven meme coin of Solana, adding fun and liquidity to the ecosystem.
-                        </p>
+                {tokens.map((token, index) => (
+                    <div 
+                        className="w-full sm:h-40 h-20 border border-gray-300 hover:bg-[#2563EB] duration-300 hover:text-white px-5 py-3 flex flex-row items-center justify-center gap-5 rounded-lg group cursor-pointer" 
+                        key={index}
+                        onClick={() => router.push("/stake")}
+                    >
+                        <img src={token.logo} alt="" className="rounded-full sm:w-20 w-10 sm:h-20 h-10 group-hover:hidden duration-300"/>
+                        <p className="text-xl group-hover:hidden duration-300">{token.name}</p>
+                        <p className="hidden duration-300 group-hover:block text-white">Go to Stake page</p>
                     </div>
-                </div>
+                ))}
 
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/Chainlink.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">Chainlink (LINK)</h3>
-                        <p className="text-gray-600">
-                            A decentralized oracle network connecting smart contracts to real-world data.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/PudgyPenguins.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">Pudgy Penguins</h3>
-                        <p className="text-gray-600">
-                            A vibrant NFT collection with growing utility and community presence across Web3.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/Render.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">Render (RNDR)</h3>
-                        <p className="text-gray-600">
-                            A token powering decentralized GPU rendering and 3D content creation.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/Aave.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">Aave (AAVE)</h3>
-                        <p className="text-gray-600">
-                            A leading DeFi protocol for decentralized lending, borrowing, and liquidity markets.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/Uniswap.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">Uniswap (UNI)</h3>
-                        <p className="text-gray-600">
-                            The most popular decentralized exchange protocol enabling token swaps and liquidity pools.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4 hover:shadow-md px-3 py-2 duration-200 rounded-md shadow-[#2563EB]">
-                    <img src="/tokens/WorldLibertyFinancial.png" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <h3 className="text-xl font-semibold">World Liberty Financial (WLF)</h3>
-                        <p className="text-gray-600">
-                            A new-generation financial token expanding access to global crypto markets.
-                        </p>
-                    </div>
-                </div>
             </div>
 
             <p className="font-sans text-2xl pt-5 italic">

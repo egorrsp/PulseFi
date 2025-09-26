@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Slider from 'rc-slider'
 import 'rc-slider/assets/index.css'
 import { ApyComponent, MainTop, SupportedTokens } from "../components/pages/main/main_ui"
@@ -12,6 +12,10 @@ export default function Home() {
     const router = useRouter();
 
     const APY: string = "6.7";
+
+    useEffect(() => {
+        localStorage.setItem('stakeAmount', amount.toString());
+    }, [amount]);
 
     return (
         <div className="w-full min-h-screen flex flex-col gap-26">

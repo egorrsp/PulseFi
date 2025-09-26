@@ -1,7 +1,7 @@
-import { CONFIG } from "@/config";
+import { TokenListProvider, TokenInfo } from "@solana/spl-token-registry";
 import { PublicKey } from "@solana/web3.js";
 
-interface TokenInfo {
+export interface TokenConfig {
     key: number;
     name: string;
     address: PublicKey;
@@ -9,61 +9,25 @@ interface TokenInfo {
     decimals: number;
 }
 
-export const TOKEN_LIST: TokenInfo[] = [
-    {
-        key: 0,
-        name: ("SOL").toString(),
-        address: CONFIG.tokens.SOL,
-        logo: "/tokens/solana.png",
-        decimals: 9,
-    },
-    {
-        key: 1,
-        name: ("BONK").toString(),
-        address: CONFIG.tokens.BONK,
-        logo: "/tokens/Bonk.png",
-        decimals: 9,
-    },
-    {
-        key: 2,
-        name: ("LINK").toString(),
-        address: CONFIG.tokens.LINK,
-        logo: "/tokens/Chainlink.png",
-        decimals: 9,
-    },
-    {
-        key: 3,
-        name: ("RNDR").toString(),
-        address: CONFIG.tokens.RNDR,
-        logo: "/tokens/Render.png",
-        decimals: 9,
-    },
-    {
-        key: 4,
-        name: ("AAVE").toString(),
-        address: CONFIG.tokens.AAVE,
-        logo: "/tokens/Aave.png",
-        decimals: 9,
-    },
-    {
-        key: 5,
-        name: ("UNI").toString(),
-        address: CONFIG.tokens.UNI,
-        logo: "/tokens/Uniswap.png",
-        decimals: 9,
-    },
-    {
-        key: 6,
-        name: ("PUDGY").toString(),
-        address: CONFIG.tokens.PUDGY,
-        logo: "/tokens/PudgyPenguins.png",
-        decimals: 9,
-    },
-    {
-        key: 7,
-        name: ("WLF").toString(),
-        address: CONFIG.tokens.WLF,
-        logo: "/tokens/WorldLibertyFinancial.png",
-        decimals: 9,
-    }
+const WHITELIST = [
+    "SOL", "USDC", "USDT", "BONK", "JUP", "RAY", "ORCA", "SRM",
+    "WIF", "PRT", "MNDE", "SAMO", "SHDW", "HNT", "MOBILE", "PYTH",
+    "MAPS", "FIDA", "MER", "SNY", "C98", "JitoSOL", "mSOL", "stSOL",
 ];
+
+export async function loadTokenList(): Promise<TokenConfig[]> {
+    const provider = new TokenListProvider();
+    const tokens = await provider.resolve();
+    // 101 === ENV.MainnetBeta
+    const tokenList = tokens.filterByChainId(101).getList();
+
+    const filtered = tokenList.filter((t: TokenInfo) => WHITELIST.includes(t.symbol));
+
+    return filtered.map((t: TokenInfo, idx: number) => ({
+        key: idx,
+        name: t.symbol,
+        address: new PublicKey(t.address),
+        logo: t.logoURI ?? "",
+        decimals: t.decimals,
+    }));
+}

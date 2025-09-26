@@ -3,8 +3,9 @@ import { useRouter } from "next/navigation";
 import { findUserProfile } from "@/helpers/wallet_hooks/wallet.hooks"
 import { useUserStore } from "@/helpers/store/useUserStore";
 import { PublicKey } from "@solana/web3.js";
-import { useUserProfile } from "@/helpers/queries/useUserProfile";
+import { useQueryClient } from "@tanstack/react-query";
 
+// Top info & wallet address
 export function TopStakeInfo() {
 
     const publicKey = useUserStore((s) => s.publicKey);
@@ -45,6 +46,7 @@ export function TopStakeInfo() {
     );
 }
 
+// Info about profile & tokens
 interface WalletStakeInfoProps {
     registerDate?: string;
     tokens?: PublicKey[];
@@ -67,16 +69,20 @@ export function WalletStakeInfo(props: WalletStakeInfoProps) {
                 ) : allFieldsPresent ? (
                     <>
                         <div className="flex flex-row justify-start items-center gap-5">
-                            <p className="text-2xl">Registration date:</p>
+                            <p className="text-2xl border-b-2 border-[#2563EB]">Registration date:</p>
                             <p className="text-2xl">{registerDate}</p>
                         </div>
                         <div className="flex flex-col justify-start items-start gap-2">
-                            <p className="text-2xl">Tokens:</p>
-                            {tokens?.map((element, idx) => (
-                                <p key={idx} className="mt-2 text-xl break-all">
-                                    {element.toBase58()}
-                                </p>
-                            ))}
+                            <p className="text-2xl border-b-2 border-[#2563EB]">Tokens:</p>
+                            {tokens && tokens.length > 0 ? (
+                                tokens.map((element, idx) => (
+                                    <p key={idx} className="mt-2 text-xl break-all">
+                                        {element.toBase58()}
+                                    </p>
+                                ))
+                            ) : (
+                                <p className="text-2xl">No tokens staked yet</p>
+                            )}
                         </div>
                     </>
                 ) : err ? (
@@ -89,6 +95,7 @@ export function WalletStakeInfo(props: WalletStakeInfoProps) {
     );
 }
 
+// Create pda-profile
 export function CreateUserProfileUI() {
 
     const router = useRouter();
@@ -98,7 +105,7 @@ export function CreateUserProfileUI() {
     const program = useUserStore((s) => s.program);
     const publicKey = useUserStore((s) => s.publicKey);
 
-    const userQuery = useUserProfile();
+    const query = useQueryClient();
 
     let isError = false;
     if (!pda) {
@@ -131,8 +138,7 @@ export function CreateUserProfileUI() {
                                 return;
                             }
                             if (!pda || !program || !publicKey) return;
-                            createUserProfile(pda, program, publicKey);
-                            userQuery.refetch()
+                            createUserProfile(pda, program, publicKey, query);
                         }}
                     >
                         Create
@@ -153,13 +159,15 @@ export function CreateUserProfileUI() {
     )
 }
 
+
+// Buttons
 export function StakeButton() {
 
     const router = useRouter();
 
     return (
-        <button 
-            className="w-full py-3 border-2 border-[#22C55E] text-center rounded-md uppercase hover:bg-[#22C55E] duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none"
+        <button
+            className="w-full py-3 border-2 border-[#22C55E] text-center rounded-md uppercase hover:bg-[#22C55E] duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none text-2xl"
             onClick={() => router.push('/stake/transfer')}
         >
             Stake
@@ -169,7 +177,7 @@ export function StakeButton() {
 
 export function UnstakeButton() {
     return (
-        <button className="w-full py-3 border-2 border-red-500 text-center rounded-md uppercase hover:bg-red-500 duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none">
+        <button className="w-full py-3 border-2 border-red-500 text-center rounded-md uppercase hover:bg-red-500 duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none text-2xl">
             Unstake
         </button>
     );

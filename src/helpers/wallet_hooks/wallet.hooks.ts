@@ -8,6 +8,7 @@ import { use, useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
 import { UserProfile } from '@/types/programId';
 import { CONFIG } from '@/config';
+import { QueryClient } from "@tanstack/react-query";
 
 export function wallet_hooks() {
     const { publicKey, connected } = useWallet();
@@ -77,8 +78,9 @@ export function token_storage_info() {
 export const createUserProfile = async (
     pda: PublicKey,
     program: any,
-    publicKey: string
-) => {
+    publicKey: string,
+    queryClient: QueryClient
+): Promise<{ ready: boolean; account?: UserProfile; error?: string }> => {
     let account: UserProfile;
 
     if (!program || !publicKey) {
@@ -96,7 +98,13 @@ export const createUserProfile = async (
             .rpc();
 
         account = await program.account.userProfile.fetch(pda);
-        console.log("done")
+
+        setTimeout(() => {
+            queryClient.invalidateQueries({
+                queryKey: ["userProfile", publicKey],
+            });
+        }, 2000);
+
         return { ready: true, account };
     } catch (err: any) {
         console.warn("Failed to initialize user profile:", err.message);
@@ -118,15 +126,6 @@ export function findUserProfile() {
     );
 
     return pda;
-}
-
-export function findUserStorage(){
-    const PublicKey = useUserStore((s) => s.publicKey);
-
-}
-
-export async function updateTokenRecordsInProfile() {
-    
 }
 
 // dev only
