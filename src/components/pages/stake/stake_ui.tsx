@@ -168,7 +168,7 @@ export function StakeButton() {
     return (
         <button
             className="w-full py-3 border-2 border-[#22C55E] text-center rounded-md uppercase hover:bg-[#22C55E] duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none text-2xl"
-            onClick={() => router.push('/stake/transfer')}
+            onClick={() => router.push('stake/choise')}
         >
             Stake
         </button>

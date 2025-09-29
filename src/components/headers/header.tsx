@@ -36,6 +36,13 @@ export default function Header() {
                         {element.title} 
                 </a>
             ))}
+            <div className="hover:bg-blue-200 cursor-pointer p-1 rounded-md duration-150">
+                <img 
+                    src='/settings-svgrepo-com.svg' 
+                    alt='settings' className="w-[43px] ease-in-out duration-150 active:rotate-45"
+                    onClick={() => router.push('/settings')}
+                />
+            </div>
         </header>
     );
 }

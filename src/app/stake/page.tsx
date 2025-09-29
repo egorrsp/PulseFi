@@ -40,7 +40,6 @@ export default function Page() {
                     <CreateUserProfileUI />
                 )) : (
                     <div>
-                        <p>Пожалуйста, подключите кошелек</p>
                         <ConnectButton />
                     </div>
                 )}

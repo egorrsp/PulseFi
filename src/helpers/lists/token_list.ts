@@ -31,3 +31,9 @@ export async function loadTokenList(): Promise<TokenConfig[]> {
         decimals: t.decimals,
     }));
 }
+
+export async function getTokenBySymbol(symbol: string): Promise<TokenConfig | null> {
+    const tokens = await loadTokenList();
+    const token = tokens.find((t) => t.name === symbol);
+    return token ?? null;
+}

@@ -1,6 +1,10 @@
+import dictionary from "../lists/traslate_name_fore_coingecko";
+
 export async function getTokenPriceInUSD(symbol: string): Promise<number> {
   try {
-    const response = await fetch(`/api/token-price?symbol=${symbol}`);
+    const mappedSymbol = dictionary[symbol] ?? symbol.toLowerCase();
+
+    const response = await fetch(`/api/token-price?symbol=${mappedSymbol}`);
     if (!response.ok) throw new Error("Failed to fetch price");
 
     const data = await response.json();
