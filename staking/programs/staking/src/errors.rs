@@ -7,4 +7,7 @@ pub enum ErrorCode {
 
     #[msg("Overflow occurred during calculation.")]
     Overflow,
+
+    #[msg("The program is currently paused.")]
+    ProgramPaused,
 }

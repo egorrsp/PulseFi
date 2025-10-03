@@ -1,14 +1,17 @@
 'use client';
 
+import * as anchor from "@coral-xyz/anchor";
 import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import Idl from "../../../staking/target/idl/staking.json"
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
-import { AnchorProvider, Program } from '@coral-xyz/anchor';
+import { AnchorProvider, BN, Program } from '@coral-xyz/anchor';
 import { use, useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
 import { UserProfile } from '@/types/programId';
 import { CONFIG } from '@/config';
 import { QueryClient } from "@tanstack/react-query";
+import { findTokenProfile, findUserProfile } from './deriveAcc';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 export function wallet_hooks() {
     const { publicKey, connected } = useWallet();
@@ -32,47 +35,6 @@ export function wallet_hooks() {
             program
         }
     )
-}
-
-export function user_profile_info() {
-    const publicKey = useUserStore((s) => s.publicKey);
-    const program = useUserStore((s) => s.program);
-    const connected = useUserStore((s) => s.connected);
-
-    if (!connected || !publicKey || !program) {
-        throw new Error("No wallet connected");
-    }
-
-    const [pda, bump] = PublicKey.findProgramAddressSync(
-        [Buffer.from("user-profile"), new PublicKey(publicKey).toBuffer()],
-        new PublicKey(program.programId)
-    );
-
-    return [pda, bump] as [PublicKey, number];
-}
-
-export function token_storage_info() {
-    const publicKey = useUserStore((s) => s.publicKey);
-    const program = useUserStore((s) => s.program);
-    const connected = useUserStore((s) => s.connected);
-    const mints = useUserStore((s) => s.mint);
-
-    if (!connected || !publicKey || !program) {
-        throw new Error("No wallet connected");
-    }
-
-    if (!mints || mints.length === 0) {
-        throw new Error("No mints found");
-    }
-
-    const result: Array<[PublicKey, number]> = mints.map((mint) =>
-        PublicKey.findProgramAddressSync(
-            [Buffer.from("token-storage"), new PublicKey(publicKey).toBuffer(), new PublicKey(mint).toBuffer()],
-            new PublicKey(program.programId)
-        )
-    );
-
-    return result;
 }
 
 export const createUserProfile = async (
@@ -112,21 +74,60 @@ export const createUserProfile = async (
     }
 };
 
-export function findUserProfile() {
-    const publicKey = useUserStore((s) => s.publicKey);
-    const program = useUserStore((s) => s.program);
+export async function makeTransaction(mint: PublicKey, amount: BigInt) {
+    const { publicKey } = useUserStore.getState();
+    const { connected } = useUserStore.getState();
+    const { provider } = useUserStore.getState();
+    const { program } = useUserStore.getState();
 
-    if (!publicKey || !program) {
-        throw Error("Can't find publicKey");
+    if (!publicKey || !connected || !mint || !program) {
+        throw new Error("No wallet connected")
     }
 
-    const [pda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("user-profile"), new PublicKey(publicKey).toBuffer()],
-        CONFIG.programId
-    );
+    const tx = new anchor.web3.Transaction();
 
-    return pda;
+    const tx1 = await program.methods
+        .programStakeTokens(new BN(amount))
+        .accounts({
+            userProfile: findUserProfile(),
+            userToken: findTokenProfile(mint),
+            tokenMint: mint,
+            user: publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            ata: await getAssociatedTokenAddress(mint, new PublicKey(publicKey)),
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .instruction();
+
+    tx.add(tx1);
+
+    const tx2 = await program.methods
+        .transferUserTokens(new BN(amount))
+        .accounts({
+            signer: publicKey,
+            mint: mint,
+            senderTokenAccount: await getAssociatedTokenAddress(mint, new PublicKey(publicKey)),
+            userToken: findTokenProfile(mint),
+            recipientTokenAccount: await getAssociatedTokenAddress(
+                mint,
+                findTokenProfile(mint),
+                true
+            ),
+            tokenProgram: CONFIG.programId,
+        })
+        .instruction();
+
+    tx.add(tx2);
+
+    const signature = await provider.sendAndConfirm(tx);
+    return signature;
 }
+
+export { findUserProfile };
+
+
 
 // dev only
 export async function requestAirdropForLocalDev() {

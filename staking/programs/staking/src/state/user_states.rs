@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 pub struct UserProfile {
     pub user: Pubkey, // Владелец профиля
     pub init_time: u64, // Время инициализации профиля
-    #[max_len(10)]
+    #[max_len(32)] // С запасом
     pub staked_tokens: Vec<Pubkey>, // Список токенов, которыми владеет пользователь
 }
 
@@ -20,4 +20,15 @@ pub struct UserToken {
     pub reward_debt: i64, // Сколько наград уже выплачено
     pub last_reward_time: u64, // Время последнего обновления наград
     pub ata: Pubkey, // Ассоциированный токен аккаунт пользователя для этого токена (чтоб фронту попроще было)
+}
+
+#[account()]
+#[derive(InitSpace)]
+pub struct AdminState {
+    pub authority: Pubkey, // Админ
+    pub reward_rate: u64, // Процент наград годовой
+    pub max_tokens_per_user: u8, // Максимум разных токенов на пользователя
+    pub paused: bool, // Пауза всей программы
+    pub treasury: Pubkey, // Казна со ВСЕМИ токенами
+    pub bump: u8, // Бамп помогаем фронту
 }

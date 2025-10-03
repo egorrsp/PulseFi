@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 pub use anchor_spl::token::Token;
 pub use anchor_spl::token_interface::{Mint, TokenAccount};
 
-use crate::state::{UserProfile, UserToken};
+use crate::state::{UserProfile, UserToken, AdminState};
 
 #[derive(Accounts)]
 pub struct InitializeUserFirstLevel<'info> {
@@ -28,6 +28,14 @@ pub struct InitializeUserSecondLevel<'info> {
         bump
     )]
     pub user_profile: Account<'info, UserProfile>,
+
+    // Для проверки лимита токенов и паузы
+    #[account(
+        mut,
+        seeds = [b"admin-state"],
+        bump = admin_state.bump,
+    )]
+    pub admin_state: Account<'info, AdminState>,
 
     #[account(
         init,
@@ -83,4 +91,63 @@ pub struct TransferTokens<'info> {
     pub recipient_token_account: InterfaceAccount<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct UnstakeTokens<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    #[account(mut)]
+    pub mint: InterfaceAccount<'info, Mint>,
+
+    #[account(mut)]
+    pub recipient_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    #[account(
+        mut,
+        seeds = [b"user-token", signer.key().as_ref(), mint.key().as_ref()],
+        bump
+    )]
+    pub user_token: Account<'info, UserToken>,
+
+    #[account(
+        mut,
+        associated_token::mint = mint,
+        associated_token::authority = user_token.key()
+    )]
+    pub sender_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+/// Админские инструкции
+#[derive(Accounts)]
+pub struct InitializeAdmin<'info> {
+    #[account(
+        init,
+        seeds = [b"admin-state"],
+        bump,
+        payer = signer,
+        space = 8 + AdminState::INIT_SPACE,
+    )]
+    pub admin_state: Account<'info, AdminState>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ChangeAdminSettings<'info> {
+    #[account(
+        mut,
+        seeds = [b"admin-state"],
+        bump = admin_state.bump,
+        has_one = authority,
+    )]
+    pub admin_state: Account<'info, AdminState>,
+
+    pub authority: Signer<'info>,
 }
