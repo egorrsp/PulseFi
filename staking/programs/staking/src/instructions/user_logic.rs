@@ -58,12 +58,29 @@ pub fn stake_tokens(ctx: Context<InitializeUserSecondLevel>, amount: u64) -> Res
 
 /// Перевод токенов (staking)
 pub fn transfer_tokens(ctx: Context<TransferTokens>, amount: u64) -> Result<()> {
+    let cpi_accounts = TransferChecked {
+        from: ctx.accounts.sender_token_account.to_account_info(),
+        mint: ctx.accounts.mint.to_account_info(),
+        to: ctx.accounts.recipient_token_account.to_account_info(),
+        authority: ctx.accounts.signer.to_account_info(),
+    };
+
+    let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+
+    anchor_spl::token::transfer_checked(cpi_ctx, amount, ctx.accounts.mint.decimals)?;
+    Ok(())
+}
+
+/// Анстейк токенов (вывод по-русски)
+pub fn unstake_tokens(ctx: Context<UnstakeTokens>, amount: u64) -> Result<()> {
     let bump = ctx.bumps.user_token;
-
-    let signer_key = ctx.accounts.signer.key();
     let mint_key = ctx.accounts.mint.key();
-
-    let signer_seeds: &[&[u8]] = &[b"user-token", signer_key.as_ref(), mint_key.as_ref(), &[bump]];
+    let signer_seeds: &[&[u8]] = &[
+        b"user-token",
+        ctx.accounts.signer.key.as_ref(),
+        mint_key.as_ref(),
+        &[bump],
+    ];
     let signer_seeds_array = [signer_seeds];
 
     let cpi_accounts = TransferChecked {
@@ -73,41 +90,11 @@ pub fn transfer_tokens(ctx: Context<TransferTokens>, amount: u64) -> Result<()> 
         authority: ctx.accounts.user_token.to_account_info(),
     };
 
-    let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts).with_signer(
-        &signer_seeds_array
-    );
-
-    anchor_spl::token::transfer_checked(cpi_ctx, amount, ctx.accounts.mint.decimals)?;
-
-    Ok(())
-}
-
-/// Анстейк токенов (вывод по-русски)
-pub fn unstake_tokens(ctx: Context<UnstakeTokens>, amount: u64) -> Result<()> {
-    let bump = ctx.bumps.user_token;
-
-    let signer_key = ctx.accounts.signer.key();
-    let mint_key = ctx.accounts.mint.key();
-
-    let signer_seeds: &[&[u8]] = &[
-        b"user-token",
-        signer_key.as_ref(),
-        mint_key.as_ref(),
-        &[bump],
-    ];
-    let signer_seeds_array = [signer_seeds];
-
-    let cpi_accounts = TransferChecked {
-        from: ctx.accounts.sender_token_account.to_account_info(), // PDA
-        mint: ctx.accounts.mint.to_account_info(),
-        to: ctx.accounts.recipient_token_account.to_account_info(), // юзерский ATA
-        authority: ctx.accounts.user_token.to_account_info(),
-    };
-
-    let cpi_ctx = CpiContext::new(
+    let cpi_ctx = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
         cpi_accounts,
-    ).with_signer(&signer_seeds_array);
+        &signer_seeds_array,
+    );
 
     anchor_spl::token::transfer_checked(
         cpi_ctx, 
