@@ -114,7 +114,6 @@ describe("staking", () => {
                 userToken: stakingPda,
                 tokenMint: mintPubkey,
                 user: userId.publicKey,
-                userTokenAccount: userTokenAccount,
                 tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
                 systemProgram: anchor.web3.SystemProgram.programId,
             })

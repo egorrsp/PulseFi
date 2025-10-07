@@ -1,28 +1,12 @@
 # PulseFi
 
-This is a Next.js app containing:
+Staking platform.
 
-- Tailwind CSS setup for styling
-- Useful wallet UI elements setup using [@solana/web3.js](https://www.npmjs.com/package/@solana/web3.js)
+use " yarn dev " for start front
+use " solana-test-validator " to start lochal blockchain node
+use " anchor build / anchor deploy " to compile and deploy your smart to chain
 
-## Getting Started
+NOTE for developers!
 
-### Installation
-
-#### Download the template
-
-```shell
-pnpm create solana-dapp@latest -t gh:solana-foundation/templates/web3js/PulseFi
-```
-
-#### Install Dependencies
-
-```shell
-pnpm install
-```
-
-#### Start the web app
-
-```shell
-pnpm dev
-```
+Dev-tools (just remove before deploy)
+1) Some fn in ./src/helpers/helpers.dev/...

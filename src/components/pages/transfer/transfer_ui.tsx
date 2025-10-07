@@ -177,7 +177,7 @@ export function ConfirmButton(props: cfbProps) {
         <div className="flex sm:flex-row flex-col sm:gap-32 gap-10 justify-start">
             <button
                 className="border-2 border-[#2563EB] bg-[#2563EB] text-white hover:bg-white px-5 py-3 text-2xl rounded-md cursor-pointer shadow-md active:shadow-none active:border-[#22C55E] active:text-[#22C55E] hover:text-[#2563EB] duration-200 transition"
-                onClick={() => { makeTransaction(new PublicKey(props.mint), props.amount) }}
+                onClick={() => { makeTransaction(new PublicKey(props.mint), props.amount, router) }}
             >
                 Accept
             </button>

@@ -38,7 +38,7 @@ pub struct InitializeUserSecondLevel<'info> {
     pub admin_state: Account<'info, AdminState>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = user,
         space = 8 + UserToken::INIT_SPACE,
         seeds = [b"user-token", user.key().as_ref(), token_mint.key().as_ref()],

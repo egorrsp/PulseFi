@@ -48,7 +48,7 @@ export function TopStakeInfo() {
 
 // Info about profile & tokens
 interface WalletStakeInfoProps {
-    registerDate?: string;
+    registerDate?: bigint;
     tokens?: PublicKey[];
     err?: string;
 }
@@ -70,14 +70,16 @@ export function WalletStakeInfo(props: WalletStakeInfoProps) {
                     <>
                         <div className="flex flex-row justify-start items-center gap-5">
                             <p className="text-2xl border-b-2 border-[#2563EB]">Registration date:</p>
-                            <p className="text-2xl">{registerDate}</p>
+                            <p className="text-2xl">
+                                {new Date(Number(registerDate) * 1000).toLocaleString()}
+                            </p>
                         </div>
                         <div className="flex flex-col justify-start items-start gap-2">
                             <p className="text-2xl border-b-2 border-[#2563EB]">Tokens:</p>
                             {tokens && tokens.length > 0 ? (
                                 tokens.map((element, idx) => (
                                     <p key={idx} className="mt-2 text-xl break-all">
-                                        {element.toBase58()}
+                                        {element.toString()}
                                     </p>
                                 ))
                             ) : (

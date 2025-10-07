@@ -8,11 +8,7 @@ export function useUserProfile() {
     const program = useUserStore((s) => s.program);
     const publicKey = useUserStore((s) => s.publicKey);
 
-    return useQuery<{
-        ready: boolean;
-        account?: UserProfile;
-        error?: string;
-    }>({
+    return useQuery({
         queryKey: ["userProfile", publicKey],
         enabled: !!program && !!publicKey,
         retry: false,
@@ -26,8 +22,20 @@ export function useUserProfile() {
 
             let account: UserProfile | null = null;
 
+            let profile
+
             try {
                 account = await program.account.userProfile.fetch(pda);
+
+                if (account) {
+                    // Финт ушами - проблемы десериализации
+                    profile = {
+                        user: new PublicKey(account.user).toBase58(),
+                        initTime: BigInt(account.initTime),
+                        stakedTokens: account.stakedTokens.map((x) => new PublicKey(x).toBase58()),
+                    };
+                }
+
             } catch (err: any) {
                 if (err.message.includes("Account does not exist")) {
                     return { ready: false };
@@ -35,7 +43,7 @@ export function useUserProfile() {
                 throw err;
             }
 
-            return { ready: true, account: account ?? undefined };
+            return { ready: true, account: profile ?? undefined };
         },
     });
 }

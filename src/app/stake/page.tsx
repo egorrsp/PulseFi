@@ -4,11 +4,10 @@ import { ConnectButton } from "@/helpers/wallet_hooks/connect.button";
 import { CreateUserProfileUI, StakeButton, TopStakeInfo, WalletStakeInfo, UnstakeButton } from "@/components/pages/stake/stake_ui";
 import { useUserStore } from "@/helpers/store/useUserStore";
 import { useUserProfile } from "@/helpers/queries/useUserProfile";
-import { UserProfile } from "@/types/programId";
-import { useEffect, useState } from "react";
+
 
 //dev only
-import { requestAirdropForLocalDev } from "@/helpers/wallet_hooks/wallet.hooks";
+import { requestAirdropForLocalDev } from "@/helpers/helpers.dev/airdrop";
 
 export default function Page() {
     const connected = useUserStore((s) => s.connected);
@@ -31,8 +30,8 @@ export default function Page() {
                             <UnstakeButton />
                         </div>
                         <WalletStakeInfo
-                            registerDate="2024-06-01"
-                            tokens={account?.staked_tokens}
+                            registerDate={account?.initTime}
+                            tokens={account?.stakedTokens}
                             err={error}
                         />
                     </div>

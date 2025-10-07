@@ -5,13 +5,15 @@ import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import Idl from "../../../staking/target/idl/staking.json"
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import { AnchorProvider, BN, Program } from '@coral-xyz/anchor';
-import { use, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
 import { UserProfile } from '@/types/programId';
 import { CONFIG } from '@/config';
 import { QueryClient } from "@tanstack/react-query";
 import { findTokenProfile, findUserProfile } from './deriveAcc';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { useRouter } from "next/navigation";
+
 
 export function wallet_hooks() {
     const { publicKey, connected } = useWallet();
@@ -74,34 +76,56 @@ export const createUserProfile = async (
     }
 };
 
-export async function makeTransaction(mint: PublicKey, amount: BigInt) {
+export async function makeTransaction(
+    mint: PublicKey, 
+    amount: BigInt,
+    router: ReturnType<typeof useRouter>
+) {
     const { publicKey } = useUserStore.getState();
     const { connected } = useUserStore.getState();
     const { provider } = useUserStore.getState();
     const { program } = useUserStore.getState();
 
+    const connection = new Connection(CONFIG.network, "confirmed");
+
     if (!publicKey || !connected || !mint || !program) {
         throw new Error("No wallet connected")
     }
 
-    const tx = new anchor.web3.Transaction();
+    const master_tx = new anchor.web3.Transaction();
 
-    const tx1 = await program.methods
-        .programStakeTokens(new BN(amount))
-        .accounts({
-            userProfile: findUserProfile(),
-            userToken: findTokenProfile(mint),
-            tokenMint: mint,
-            user: publicKey,
-            systemProgram: anchor.web3.SystemProgram.programId,
-            ata: await getAssociatedTokenAddress(mint, new PublicKey(publicKey)),
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        })
-        .instruction();
+    const userAta = await getAssociatedTokenAddress(mint, new PublicKey(publicKey));
+    const userAtaInfo = await connection.getAccountInfo(userAta);
 
-    tx.add(tx1);
+    if (!userAtaInfo) {
+        master_tx.add(
+            createAssociatedTokenAccountInstruction(
+                new PublicKey(publicKey),
+                userAta,
+                new PublicKey(publicKey),
+                mint
+            )
+        )
+    }
+
+    const tokenPda = findTokenProfile(mint);
+    const tokenPdaInfo = await connection.getAccountInfo(tokenPda);
+
+    if (!tokenPdaInfo) {
+        const tx1 = await program.methods
+            .programStakeTokens(new BN(amount))
+            .accounts({
+                userProfile: findUserProfile(),
+                userToken: findTokenProfile(mint),
+                tokenMint: mint,
+                user: publicKey,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            })
+            .instruction();
+
+        master_tx.add(tx1);
+    }
 
     const tx2 = await program.methods
         .transferUserTokens(new BN(amount))
@@ -115,40 +139,21 @@ export async function makeTransaction(mint: PublicKey, amount: BigInt) {
                 findTokenProfile(mint),
                 true
             ),
-            tokenProgram: CONFIG.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
         })
         .instruction();
 
-    tx.add(tx2);
+    master_tx.add(tx2);
+    
+    let signature
 
-    const signature = await provider.sendAndConfirm(tx);
-    return signature;
-}
-
-export { findUserProfile };
-
-
-
-// dev only
-export async function requestAirdropForLocalDev() {
-    const connection = new Connection(CONFIG.network, "confirmed");
-
-    const { publicKey } = useUserStore.getState();
-
-    if (!connection || !publicKey) {
-        console.error("Connection is not established");
-        return;
+    try {
+        signature = await provider.sendAndConfirm(master_tx);
+    } catch (err) {
+        router.push("/stake/result/error-page")
     }
 
-    const airdropSig = await connection.requestAirdrop(
-        new PublicKey(publicKey),
-        2 * LAMPORTS_PER_SOL
-    );
+    router.push("/stake/result/ok-page")
 
-    await connection.confirmTransaction(airdropSig, "confirmed");
-
-    console.log("Airdrop requested");
-
-    const balance = await connection.getBalance(new PublicKey(publicKey));
-    console.log("Balance:", balance / LAMPORTS_PER_SOL, "SOL");
+    return signature;
 }

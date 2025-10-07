@@ -6,8 +6,8 @@ export const PROGRAM_ID = new PublicKey(CONFIG.programId);
 // === Accounts ===
 export interface UserProfile {
   user: PublicKey;
-  init_time: bigint;
-  staked_tokens: PublicKey[];
+  initTime: bigint;
+  stakedTokens: PublicKey[];
 }
 
 export interface UserToken {
