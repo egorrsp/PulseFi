@@ -5,14 +5,12 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const network = "http://127.0.0.1:8899"
+
 const Idl = JSON.parse(fs.readFileSync("staking/target/idl/staking.json", "utf-8"));
 
-const PROGRAM_ID = new PublicKey(
-  Idl.metadata?.address ?? Idl.address ?? (() => { throw new Error("❌ Program ID not found in IDL"); })()
-);
-
 export async function setAdmin() {
-  const connection = new Connection("http://127.0.0.1:8899", "confirmed");
+  const connection = new Connection(network, "confirmed");
 
   const keypairPath = process.env.ADMIN_KEYPAIR_PATH;
   if (!keypairPath) throw new Error("❌ ADMIN_KEYPAIR_PATH is not defined in .env");

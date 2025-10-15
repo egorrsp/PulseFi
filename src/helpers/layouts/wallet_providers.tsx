@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode, useMemo, useState } from 'react';
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
     ConnectionProvider,
     WalletProvider
@@ -13,8 +12,9 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export function Providers({ children }: { children: ReactNode }) {
-    const network = WalletAdapterNetwork.Testnet;
-    const endpoint = "http://127.0.0.1:8899";
+    const endpoint = process.env.NEXT_PUBLIC_SERVER
+        ? `${process.env.NEXT_PUBLIC_SERVER}/rpc`
+        : "http://127.0.0.1:8080/rpc";
 
     const wallets = useMemo(
         () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],

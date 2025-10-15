@@ -1,10 +1,11 @@
-import { CONFIG } from "@/config";
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useUserStore } from "../store/useUserStore";
 
-// dev only
 export async function requestAirdropForLocalDev() {
-    const connection = new Connection(CONFIG.network, "confirmed");
+    const connection = new Connection(`${process.env.NEXT_PUBLIC_SERVER}/rpc`, {
+        commitment: "confirmed",
+        confirmTransactionInitialTimeout: 60000
+    });
 
     const { publicKey } = useUserStore.getState();
 

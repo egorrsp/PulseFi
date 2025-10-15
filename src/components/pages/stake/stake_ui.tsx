@@ -49,7 +49,7 @@ export function TopStakeInfo() {
 // Info about profile & tokens
 interface WalletStakeInfoProps {
     registerDate?: bigint;
-    tokens?: PublicKey[];
+    tokens?: String[];
     err?: string;
 }
 
