@@ -7,9 +7,10 @@ interface NonceResponse {
     data: {nonce: string}
 }
 
+const api_instans = process.env.NEXT_PUBLIC_SERVER;
+
 async function getNonce() {
     try {
-        const api_instans = process.env.NEXT_PUBLIC_SERVER;
         const response: NonceResponse = await axios.get(`${api_instans}/nonce`);
         return response.data.nonce;
     }
@@ -33,9 +34,18 @@ export async function authenticateWithWallet() {
     signature: bs58.encode(signedMessage.signature),
   };
 
-  const api_instans = process.env.NEXT_PUBLIC_SERVER;
-  const response = await axios.post(`${api_instans}/authentification`, payload);
+  const response = await axios.post(`${api_instans}/authentication`, payload, {
+    withCredentials: true,
+  });
 
-  console.log("Tokens:", response.data);
-  return response.data;
+  return response;
+}
+
+export async function checkAuthentication() {
+  try {
+    const data = await axios.get(`${api_instans}/protect/check`, { withCredentials: true });
+    return data;
+  } catch (err) {
+    throw err;
+  }
 }

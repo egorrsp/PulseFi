@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from "react";
-import { wallet_hooks } from "@/helpers/wallet_hooks/wallet.hooks";
+import { wallet_hooks } from "@/helpers/wallet_hooks/wallet-hooks";
 import { useUserStore } from "@/helpers/store/useUserStore";
 
 export function UserSyncProvider({ children }: { children: React.ReactNode }) {

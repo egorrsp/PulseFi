@@ -5,7 +5,7 @@ import { loadTokenList, TokenConfig } from "@/helpers/lists/token_list";
 import { getTokenPriceInUSD } from "@/helpers/wallet_hooks/price-tokens.api";
 import { useRouter } from "next/navigation";
 import { BN } from "@coral-xyz/anchor";
-import { makeTransaction } from "@/helpers/wallet_hooks/wallet.hooks";
+import { makeTransaction } from "@/helpers/wallet_hooks/wallet-hooks";
 import { PublicKey } from "@solana/web3.js";
 
 export function TokenSelector({ onSelect }: { onSelect: (token: TokenConfig) => void }) {

@@ -5,7 +5,7 @@ import { CreateUserProfileUI, StakeButton, TopStakeInfo, WalletStakeInfo, Unstak
 import { useUserStore } from "@/helpers/store/useUserStore";
 import { useUserProfile } from "@/helpers/queries/useUserProfile";
 import { useEffect, useState } from "react";
-import { authenticateWithWallet } from "@/helpers/server_api/auth";
+import { authenticateWithWallet, checkAuthentication } from "@/helpers/server_api/auth";
 
 
 //dev only
@@ -16,22 +16,48 @@ export default function Page() {
     const connected = useUserStore((s) => s.connected);
     const userQuery = useUserProfile();
     const [isVerify, setIsVerify] = useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
 
-    const verify = () => {
+    const verify = async () => {
+        setIsLoading(true)
         try {
-            const response = authenticateWithWallet()
-            console.log(response)
-            setIsVerify(true)
+            const response = await authenticateWithWallet();
+            if (response?.status === 200) {
+                setIsVerify(true);
+            }
         } catch (err) {
-            console.log(err)
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const autoVerify = async () => {
+        try {
+            const response = await checkAuthentication();
+            if (response.data.status === "protected") {
+                setIsVerify(true)
+            }
+        } catch (err) {
+            setIsVerify(false)
         }
     }
+
+    useEffect(() => {
+        autoVerify()
+    }, []);
 
     if (userQuery.isLoading) {
         return <div>Loading...</div>;
     }
 
     const { ready, account, error } = userQuery.data ?? {};
+
+    if (isLoading) {
+        return (
+            <div>Verifying...</div>
+        )
+    }
 
     return (
         <>

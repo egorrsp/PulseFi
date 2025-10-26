@@ -10,11 +10,10 @@ import {
     SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { CONFIG } from '@/config';
 
 export function Providers({ children }: { children: ReactNode }) {
-    const endpoint = process.env.NEXT_PUBLIC_SERVER
-        ? `${process.env.NEXT_PUBLIC_SERVER}/rpc`
-        : "http://127.0.0.1:8080/rpc";
+    const endpoint = CONFIG.network
 
     const wallets = useMemo(
         () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],

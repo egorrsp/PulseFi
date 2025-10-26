@@ -1,4 +1,4 @@
-import { createUserProfile } from "@/helpers/wallet_hooks/wallet.hooks";
+import { createUserProfile } from "@/helpers/wallet_hooks/wallet-hooks";
 import { useRouter } from "next/navigation";
 import { findUserProfile } from "@/helpers/wallet_hooks/deriveAcc"
 import { useUserStore } from "@/helpers/store/useUserStore";

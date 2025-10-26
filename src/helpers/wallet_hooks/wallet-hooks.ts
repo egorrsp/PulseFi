@@ -8,19 +8,17 @@ import { AnchorProvider, BN, Program } from '@coral-xyz/anchor';
 import { useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
 import { UserProfile } from '@/types/programId';
-import { CONFIG } from '@/config';
 import { QueryClient } from "@tanstack/react-query";
 import { findTokenProfile, findUserProfile } from './deriveAcc';
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useRouter } from "next/navigation";
-import { authenticateWithWallet } from "../server_api/auth";
+import { CONFIG } from "@/config";
 
 
 export function wallet_hooks() {
     const { publicKey, connected } = useWallet();
-    const connection = new Connection(`${process.env.NEXT_PUBLIC_SERVER}/rpc`, {
+    const connection = new Connection(CONFIG.network , {
         commitment: "confirmed",
-        confirmTransactionInitialTimeout: 60000
     });
 
     const anchorWallet = useAnchorWallet();
@@ -94,7 +92,9 @@ export async function makeTransaction(
     const { provider } = useUserStore.getState();
     const { program } = useUserStore.getState();
 
-    const connection = new Connection(`${process.env.NEXT_PUBLIC_SERVER}/rpc`, "confirmed");
+    const connection = new Connection(CONFIG.network , {
+        commitment: "confirmed",
+    });
 
     if (!publicKey || !connected || !mint || !program) {
         throw new Error("No wallet connected")
