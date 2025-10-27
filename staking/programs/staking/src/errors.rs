@@ -10,4 +10,10 @@ pub enum ErrorCode {
 
     #[msg("The program is currently paused.")]
     ProgramPaused,
+
+    #[msg("Insufficient funds in the sender's token account.")]
+    InsufficientFunds,
+
+    #[msg("The provided mint does not match the expected mint.")]
+    InvalidMint,
 }

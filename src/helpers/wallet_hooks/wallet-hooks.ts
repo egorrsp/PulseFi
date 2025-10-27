@@ -92,6 +92,8 @@ export async function makeTransaction(
     const { provider } = useUserStore.getState();
     const { program } = useUserStore.getState();
 
+    console.log("amount:", amount);
+
     const connection = new Connection(CONFIG.network , {
         commitment: "confirmed",
     });
@@ -157,11 +159,14 @@ export async function makeTransaction(
 
     try {
         signature = await provider.sendAndConfirm(master_tx);
+        if (!signature) {
+            router.push("/stake/result/error-page")
+            throw new Error("Transaction failed");
+        }
     } catch (err) {
         router.push("/stake/result/error-page")
     }
 
     router.push("/stake/result/ok-page")
-
     return signature;
 }

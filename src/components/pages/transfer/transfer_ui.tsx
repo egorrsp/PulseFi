@@ -50,7 +50,10 @@ export function TokenSelector({ onSelect }: { onSelect: (token: TokenConfig) => 
     );
 }
 
-export function TokenPriceOrganaiser({ token }: { token: string }) {
+
+// Пиздец я тут наюзеффектил конечно, потом надо разтащить их по компонентам
+export function TokenPriceOrganaiser({ token, onChange }: { token: string, onChange: (amountInTokens: number) => void }) {
+    
     const [amountInDollars, setAmountInDollars] = useState<number | "">("");
     const [amountInTokens, setAmountInTokens] = useState<number | "">("");
     const [isInChange, setIsInChange] = useState<boolean>(false);
@@ -107,6 +110,11 @@ export function TokenPriceOrganaiser({ token }: { token: string }) {
         const t = setTimeout(() => setIsInChange(false), 500);
         return () => clearTimeout(t);
     }, [amountInDollars, amountInTokens]);
+
+    useEffect(() => {
+        if (typeof amountInTokens === "number") {onChange(amountInTokens)}
+        console.log("amountInTokens:", amountInTokens);
+    }, [amountInTokens]);
 
     useEffect(() => {
         if (typeof window === "undefined") return;

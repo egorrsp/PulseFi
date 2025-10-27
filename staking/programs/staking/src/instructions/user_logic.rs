@@ -58,6 +58,12 @@ pub fn stake_tokens(ctx: Context<InitializeUserSecondLevel>, amount: u64) -> Res
 
 /// Перевод токенов (staking)
 pub fn transfer_tokens(ctx: Context<TransferTokens>, amount: u64) -> Result<()> {
+    let sendler_tokens = &ctx.accounts.sender_token_account;
+    let mint_key = ctx.accounts.mint.key();
+    require!(sendler_tokens.mint == mint_key, ErrorCode::InvalidMint);
+
+    require!(sendler_tokens.amount >= amount, ErrorCode::InsufficientFunds);
+
     let cpi_accounts = TransferChecked {
         from: ctx.accounts.sender_token_account.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
@@ -75,12 +81,7 @@ pub fn transfer_tokens(ctx: Context<TransferTokens>, amount: u64) -> Result<()> 
 pub fn unstake_tokens(ctx: Context<UnstakeTokens>, amount: u64) -> Result<()> {
     let bump = ctx.bumps.user_token;
     let mint_key = ctx.accounts.mint.key();
-    let signer_seeds: &[&[u8]] = &[
-        b"user-token",
-        ctx.accounts.signer.key.as_ref(),
-        mint_key.as_ref(),
-        &[bump],
-    ];
+    let signer_seeds: &[&[u8]] = &[b"user-token", ctx.accounts.signer.key.as_ref(), mint_key.as_ref(), &[bump]];
     let signer_seeds_array = [signer_seeds];
 
     let cpi_accounts = TransferChecked {
@@ -93,18 +94,13 @@ pub fn unstake_tokens(ctx: Context<UnstakeTokens>, amount: u64) -> Result<()> {
     let cpi_ctx = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
         cpi_accounts,
-        &signer_seeds_array,
+        &signer_seeds_array
     );
 
-    anchor_spl::token::transfer_checked(
-        cpi_ctx, 
-        amount, 
-        ctx.accounts.mint.decimals,
-    )?;
+    anchor_spl::token::transfer_checked(cpi_ctx, amount, ctx.accounts.mint.decimals)?;
 
     let user_token = &mut ctx.accounts.user_token;
-    user_token.staked_amount = user_token.staked_amount.checked_sub(amount)
-        .ok_or(ErrorCode::Overflow)?;
+    user_token.staked_amount = user_token.staked_amount.checked_sub(amount).ok_or(ErrorCode::Overflow)?;
 
     Ok(())
 }

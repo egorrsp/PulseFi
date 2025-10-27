@@ -6,11 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getTokenBySymbol, type TokenConfig } from "@/helpers/lists/token_list";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { BN } from "@coral-xyz/anchor";
 
 export default function Page() {
     const searchParams = useSearchParams();
     const selectedTokenName = searchParams.get("token");
     const [selectedToken, setSelectedToken] = useState<TokenConfig | null>(null);
+
+    const [amount, setAmount] = useState<number>(0);
 
     const { connected } = useWallet();
     const router = useRouter();
@@ -60,6 +63,7 @@ export default function Page() {
                     You selected:{" "}
                     <span className="text-[#2563EB]">{selectedTokenName}</span>{" "}
                     - good choice!
+
                 </p>
 
                 <div className="flex items-center gap-4">
@@ -79,9 +83,9 @@ export default function Page() {
                     Now, enter the amount you want to stake
                 </p>
 
-                <TokenPriceOrganaiser token={selectedTokenName} />
+                <TokenPriceOrganaiser token={selectedTokenName} onChange={setAmount} />
                 {selectedToken?.address ? (
-                    <ConfirmButton mint={selectedToken.address.toBase58()} amount={undefined} />
+                    <ConfirmButton mint={selectedToken.address.toBase58()} amount={new BN(Math.floor(amount * 10 ** selectedToken.decimals))} />
                 ) : (
                     <p>We can't identify mint</p>
                 )
