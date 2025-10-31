@@ -9,14 +9,13 @@ interface NonceResponse {
 
 const api_instans = process.env.NEXT_PUBLIC_SERVER;
 
-async function getNonce() {
-    try {
-        const response: NonceResponse = await axios.get(`${api_instans}/nonce`);
-        return response.data.nonce;
-    }
-    catch (err) {
-        throw err;
-    }
+async function getNonce(pubkey: string) {
+  try {
+    const response: NonceResponse = await axios.post(`${api_instans}/nonce`, { pubkey });
+    return response.data.nonce;
+  } catch (err) {
+    throw err;
+  }
 }
 
 export async function authenticateWithWallet() {
@@ -24,7 +23,7 @@ export async function authenticateWithWallet() {
   if (!provider?.isPhantom) throw new Error("Phantom wallet not found");
 
   const { publicKey } = await provider.connect();
-  const nonce = await getNonce();
+  const nonce = await getNonce(publicKey.toBase58());
 
   const signedMessage = await provider.signMessage(new TextEncoder().encode(nonce), "utf8");
 

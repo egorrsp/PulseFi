@@ -4,6 +4,8 @@ import { findUserProfile } from "@/helpers/wallet_hooks/deriveAcc"
 import { useUserStore } from "@/helpers/store/useUserStore";
 import { PublicKey } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
+import { authenticateWithWallet } from "@/helpers/server_api/auth";
+import { on } from "events";
 
 // Top info & wallet address
 export function TopStakeInfo() {
@@ -183,4 +185,50 @@ export function UnstakeButton() {
             Unstake
         </button>
     );
+}
+
+export function Verification({ onVerified, onLoading }: { onVerified?: (verifying: boolean) => void, onLoading?: (loading: boolean) => void }) {
+    const router = useRouter();
+
+    const verify = async () => {
+        onLoading?.(true);
+        try {
+            const response = await authenticateWithWallet();
+            if (response?.status === 200) {
+                onVerified?.(true);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            onLoading?.(false);
+        }
+    };
+
+    return (
+        <>
+            <div className="flex flex-col gap-5">
+                <div className="flex flex-col">
+                    <p className="text-2xl">Please, verify before starting use platform</p>
+                    <p>Verification is necessary to prevent malicious attacks on the network</p>
+                </div>
+
+                <div className="flex gap-10 w-full">
+                    <button
+                        className="w-1/2 px-3 py-2 bg-[#22C55E] text-white rounded-md cursor-pointer"
+                        onClick={() => verify()}
+                    >
+                        Verify
+                    </button>
+
+                    <button
+                        className="w-1/2 px-3 py-2 flex bg-[#2563EB] text-white rounded-md cursor-pointer whitespace-nowrap"
+                        onClick={() => router.push('/institutions')}
+                    >
+                        Why I need to verify?
+                    </button>
+                </div>
+
+            </div>
+        </>
+    )
 }
