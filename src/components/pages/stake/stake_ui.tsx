@@ -7,17 +7,27 @@ import { useQueryClient } from "@tanstack/react-query";
 import { authenticateWithWallet } from "@/helpers/server_api/auth";
 import { on } from "events";
 
+export interface UsernameInfoProps {
+    username?: string;
+}
+
+
 // Top info & wallet address
-export function TopStakeInfo() {
+export function TopStakeInfo({username}: UsernameInfoProps) {
 
     const publicKey = useUserStore((s) => s.publicKey);
 
     return (
-        <div className="flex md:flex-row flex-col justify-between items-center gap-16">
+        <div className="flex md:flex-row flex-col justify-between md:items-center items-start gap-16">
             <div>
-                <h4 className="text-6xl font-sans font-semibold text-[#111827]">
-                    GM
-                </h4>
+                <div className="flex flex-col items-start">
+                    <h4 className="text-6xl font-sans font-semibold text-[#111827]">
+                        GM,
+                    </h4>
+                    <div className="block text-6xl font-sans font-semibold text-[#111827]">
+                        {username ? username : "Anonymous"}
+                    </div>
+                </div>
                 <p className='text-[#111827] text-md'>Here you can stake your tokens</p>
             </div>
             <div className="flex flex-col justify-end gap-2 border border-[#22C55E] px-5 py-7 rounded-md hover:shadow-md shadow-[#22C55E] easy-in-out duration-150">
@@ -100,7 +110,7 @@ export function WalletStakeInfo(props: WalletStakeInfoProps) {
 }
 
 // Create pda-profile
-export function CreateUserProfileUI() {
+export function CreateUserProfileUI({username}: UsernameInfoProps) {
 
     const router = useRouter();
 
@@ -121,7 +131,7 @@ export function CreateUserProfileUI() {
             <div className="flex md:flex-row flex-col justify-between items-center gap-16">
                 <div>
                     <h4 className="text-6xl font-sans font-semibold text-[#111827]">
-                        GM
+                        GM, {username ? username : "Anonymous"}
                     </h4>
                     <p className='text-[#111827] text-md'>Here you can stake your tokens</p>
                 </div>
@@ -161,30 +171,6 @@ export function CreateUserProfileUI() {
             </div>
         </div>
     )
-}
-
-
-// Buttons
-export function StakeButton() {
-
-    const router = useRouter();
-
-    return (
-        <button
-            className="w-full py-3 border-2 border-[#22C55E] text-center rounded-md uppercase hover:bg-[#22C55E] duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none text-2xl"
-            onClick={() => router.push('stake/choise')}
-        >
-            Stake
-        </button>
-    );
-}
-
-export function UnstakeButton() {
-    return (
-        <button className="w-full py-3 border-2 border-red-500 text-center rounded-md uppercase hover:bg-red-500 duration-200 cursor-pointer hover:text-white shadow-md active:shadow-none text-2xl">
-            Unstake
-        </button>
-    );
 }
 
 export function Verification({ onVerified, onLoading }: { onVerified?: (verifying: boolean) => void, onLoading?: (loading: boolean) => void }) {
@@ -230,5 +216,51 @@ export function Verification({ onVerified, onLoading }: { onVerified?: (verifyin
 
             </div>
         </>
+    )
+}
+
+// Buttons
+export function StakeButton() {
+
+    const router = useRouter();
+
+    return (
+        <button
+            className="w-full py-3 border-2 border-[#22C55E] text-center rounded-md
+                uppercase hover:bg-[#22C55E] duration-200 cursor-pointer
+                hover:text-white shadow-md active:shadow-none text-2xl"
+            onClick={() => router.push('stake/choise')}
+        >
+            Stake
+        </button>
+    );
+}
+
+export function UnstakeButton() {
+
+    return (
+        <button 
+            className="w-full py-3 border-2 border-red-500 text-center rounded-md 
+                uppercase hover:bg-red-500 duration-200 cursor-pointer 
+                hover:text-white shadow-md active:shadow-none text-2xl"
+        >
+            Unstake
+        </button>
+    );
+}
+
+export function ProfileButton() {
+
+    const router = useRouter();
+
+    return (
+        <button
+            className="w-full py-3 border-2 border-[#2563EB] text-center rounded-md 
+                uppercase hover:bg-[#2563EB] duration-200 cursor-pointer
+                 hover:text-white shadow-md active:shadow-none text-2xl"
+            onClick={() => router.push('/profile')}
+        >
+            My Profile
+        </button>
     )
 }
