@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { CONFIG } from "../../config";
 import { UserProfile } from "@/types/programId";
 
+
 export function useUserProfile() {
     const program = useUserStore((s) => s.program);
     const publicKey = useUserStore((s) => s.publicKey);
@@ -38,12 +39,12 @@ export function useUserProfile() {
 
             } catch (err: any) {
                 if (err.message.includes("Account does not exist")) {
-                    return { ready: false };
+                    return { ready1: false };
                 }
                 throw err;
             }
 
-            return { ready: true, account: profile ?? undefined };
+            return { ready1: true, account: profile ?? undefined };
         },
     });
 }

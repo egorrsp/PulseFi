@@ -16,4 +16,7 @@ pub enum ErrorCode {
 
     #[msg("The provided mint does not match the expected mint.")]
     InvalidMint,
+
+    #[msg("Program is paused")]
+    ProgramPaused
 }

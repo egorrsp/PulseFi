@@ -10,7 +10,6 @@ export function UserSyncProvider({ children }: { children: React.ReactNode }) {
   const clearUser = useUserStore((s) => s.clearUser);
   const pk = publicKey?.toBase58();
 
-
   useEffect(() => {
     if (connected && publicKey) {
       setUser({ publicKey: pk, connected, provider, program });

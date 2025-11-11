@@ -26,7 +26,7 @@ export async function createUser(pubkey: string) {
 
 export async function updateUsername(pubkey: string, newUsername: string) {
     try {
-        const responce = await axios.patch(`${api_instans}/protect/user/update-username`, 
+        const responce = await axios.post(`${api_instans}/protect/user/change_username`, 
             { pubkey, newUsername }, 
             { withCredentials: true });
         

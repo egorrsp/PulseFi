@@ -6,7 +6,7 @@ use crate::user_contexts::{
     ChangeAdminSettings,
     UnstakeTokens,
 };
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::msg};
 use anchor_spl::token::TransferChecked;
 use crate::errors::ErrorCode;
 
@@ -41,6 +41,7 @@ pub fn stake_tokens(ctx: Context<InitializeUserSecondLevel>, amount: u64) -> Res
     {
         // Добавляем токен в список, если его там ещё нет и если не превышен лимит
         user_profile.staked_tokens.push(ctx.accounts.token_mint.key());
+        msg!(&format!("added token with mint {} to user {}", &ctx.accounts.token_mint.key(), &ctx.accounts.user.key()))
     } else {
         return Err(ErrorCode::MaxStakedTokensReached.into());
     }
@@ -83,6 +84,10 @@ pub fn unstake_tokens(ctx: Context<UnstakeTokens>, amount: u64) -> Result<()> {
     let mint_key = ctx.accounts.mint.key();
     let signer_seeds: &[&[u8]] = &[b"user-token", ctx.accounts.signer.key.as_ref(), mint_key.as_ref(), &[bump]];
     let signer_seeds_array = [signer_seeds];
+
+    let admin_state = &ctx.accounts.admin_state;
+
+    require!(admin_state.paused, ErrorCode::ProgramPaused);
 
     let cpi_accounts = TransferChecked {
         from: ctx.accounts.sender_token_account.to_account_info(),

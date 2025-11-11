@@ -1,23 +1,22 @@
 'use client';
 
-import * as anchor from "@coral-xyz/anchor";
+import * as anchor from "@coral-xyz/anchor"
 import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import Idl from "../../../staking/target/idl/staking.json"
-import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
+import { Connection, PublicKey, SendTransactionError, SystemProgram } from "@solana/web3.js";
 import { AnchorProvider, BN, Program } from '@coral-xyz/anchor';
 import { useMemo } from 'react';
 import { useUserStore } from '../store/useUserStore';
 import { UserProfile } from '@/types/programId';
 import { QueryClient } from "@tanstack/react-query";
-import { findTokenProfile, findUserProfile } from './deriveAcc';
-import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useRouter } from "next/navigation";
 import { CONFIG } from "@/config";
+import { ConfigurateTransaction } from "./help-transaction-hooks";
 
 
 export function wallet_hooks() {
     const { publicKey, connected } = useWallet();
-    const connection = new Connection(CONFIG.network , {
+    const connection = new Connection(CONFIG.network, {
         commitment: "confirmed",
     });
 
@@ -45,14 +44,30 @@ export function wallet_hooks() {
     )
 }
 
-export const createUserProfile = async (
-    pda: PublicKey,
-    program: any,
-    publicKey: string,
-    queryClient: QueryClient
-): Promise<{ ready: boolean; account?: UserProfile; error?: string }> => {
-    let account: UserProfile;
 
+
+
+interface CreateUserProfileParams {
+    pda: PublicKey;
+    program: any;
+    publicKey: string;
+    queryClient: QueryClient;
+    onAlert?: (alert: boolean) => void;
+}
+
+interface CreateUserProfileResult {
+    ready: boolean;
+    account?: UserProfile;
+    error?: string;
+}
+
+export const createUserProfile = async ({
+    pda,
+    program,
+    publicKey,
+    queryClient,
+    onAlert,
+}: CreateUserProfileParams) : Promise<CreateUserProfileResult> => {
     if (!program || !publicKey) {
         return { ready: false, error: "Missing program or publicKey" };
     }
@@ -67,7 +82,7 @@ export const createUserProfile = async (
             })
             .rpc();
 
-        account = await program.account.userProfile.fetch(pda);
+        const account: UserProfile = await program.account.userProfile.fetch(pda);
 
         setTimeout(() => {
             queryClient.invalidateQueries({
@@ -78,13 +93,21 @@ export const createUserProfile = async (
         return { ready: true, account };
     } catch (err: any) {
         console.warn("Failed to initialize user profile:", err.message);
+
+        if (err.message?.includes("Attempt to debit an account but found no record of a prior credit")) {
+            onAlert?.(true); 
+        }
+
         return { ready: false, error: err.message };
     }
 };
 
+
+
+// Транзакция, она кастомная - тут определены как последний блокхеш так и плательщик fee
 export async function makeTransaction(
     mint: PublicKey,
-    amount: BigInt,
+    amount: BN,
     router: ReturnType<typeof useRouter>
 ) {
     const { publicKey } = useUserStore.getState();
@@ -92,81 +115,71 @@ export async function makeTransaction(
     const { provider } = useUserStore.getState();
     const { program } = useUserStore.getState();
 
-    console.log("amount:", amount);
-
-    const connection = new Connection(CONFIG.network , {
+    const connection = new Connection(CONFIG.network, {
         commitment: "confirmed",
     });
 
     if (!publicKey || !connected || !mint || !program) {
+        console.log("No wallet conneted")
         throw new Error("No wallet connected")
     }
 
-    const master_tx = new anchor.web3.Transaction();
-
-    const userAta = await getAssociatedTokenAddress(mint, new PublicKey(publicKey));
-    const userAtaInfo = await connection.getAccountInfo(userAta);
-
-    if (!userAtaInfo) {
-        master_tx.add(
-            createAssociatedTokenAccountInstruction(
-                new PublicKey(publicKey),
-                userAta,
-                new PublicKey(publicKey),
-                mint
-            )
-        )
-    }
-
-    const tokenPda = findTokenProfile(mint);
-    const tokenPdaInfo = await connection.getAccountInfo(tokenPda);
-
-    if (!tokenPdaInfo) {
-        const tx1 = await program.methods
-            .programStakeTokens(new BN(amount))
-            .accounts({
-                userProfile: findUserProfile(),
-                userToken: findTokenProfile(mint),
-                tokenMint: mint,
-                user: publicKey,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: anchor.web3.SystemProgram.programId,
-            })
-            .instruction();
-
-        master_tx.add(tx1);
-    }
-
-    const tx2 = await program.methods
-        .transferUserTokens(new BN(amount))
-        .accounts({
-            signer: publicKey,
-            mint: mint,
-            senderTokenAccount: await getAssociatedTokenAddress(mint, new PublicKey(publicKey)),
-            userToken: findTokenProfile(mint),
-            recipientTokenAccount: await getAssociatedTokenAddress(
-                mint,
-                findTokenProfile(mint),
-                true
-            ),
-            tokenProgram: TOKEN_PROGRAM_ID,
-        })
-        .instruction();
-
-    master_tx.add(tx2);
-
-    let signature
+    const master_tx = await ConfigurateTransaction(
+        publicKey, 
+        program, 
+        connection, 
+        mint, 
+        amount
+    );
 
     try {
-        signature = await provider.sendAndConfirm(master_tx);
-        if (!signature) {
-            router.push("/stake/result/error-page")
-            throw new Error("Transaction failed");
-        }
-    } catch (err) {
-        router.push("/stake/result/error-page")
-    }
+        const latestBlockhash = await connection.getLatestBlockhash();
 
-    router.push("/stake/result/ok-page")
-    return signature;
+        master_tx.recentBlockhash = latestBlockhash.blockhash;
+        master_tx.feePayer = provider.wallet.publicKey;
+
+        const signedTx = await provider.wallet.signTransaction(master_tx);
+        const signature = await connection.sendRawTransaction(signedTx.serialize(), {
+            skipPreflight: false,
+            preflightCommitment: "confirmed",
+        });
+
+        await connection.confirmTransaction(signature, "confirmed");
+
+        console.log("Sent transaction:", signature);
+        router.push("/stake/result/ok-page");
+        return;
+    } catch (err: any) {
+        console.error("Transaction failed:", err);
+
+        if (err instanceof SendTransactionError) {
+            try {
+                const logs = await err.getLogs(connection);
+                console.log("Simulation logs:", logs);
+
+                const anchorError = anchor.AnchorError.parse(logs);
+                if (anchorError) {
+                    console.error("Anchor error:", anchorError.error);
+                    console.error("Error message:", anchorError.message);
+
+                    if (anchorError.error.errorCode.code === "InsufficientFunds") {
+                        router.push("/stake/result/error-page/insufficient-funds");
+                        return;
+                    } else {
+                        console.log(`Program error: ${anchorError.message}`);
+                    }
+                } else {
+                    alert("Unknown error during transaction simulation");
+                }
+
+            } catch (parseErr) {
+                console.error("Failed to parse logs:", parseErr);
+            }
+        } else {
+            console.log("can't sent transiction")
+        }
+
+        router.push("/stake/result/error-page");
+        return;
+    }
 }

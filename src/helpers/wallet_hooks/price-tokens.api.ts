@@ -6,7 +6,6 @@ export async function getTokenPriceInUSD(symbol: string): Promise<number> {
 
     const response = await fetch(`/api/token-price?symbol=${mappedSymbol}`);
     if (!response.ok) throw new Error("Failed to fetch price");
-
     const data = await response.json();
     return data.price as number;
   } catch (error) {

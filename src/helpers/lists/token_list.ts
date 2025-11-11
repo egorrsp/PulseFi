@@ -10,9 +10,26 @@ export interface TokenConfig {
 }
 
 const WHITELIST = [
-    "SOL", "USDC", "USDT", "BONK", "JUP", "RAY", "ORCA", "SRM",
-    "WIF", "PRT", "MNDE", "SAMO", "SHDW", "HNT", "MOBILE", "PYTH",
-    "MAPS", "FIDA", "MER", "SNY", "C98", "JitoSOL", "mSOL", "stSOL",
+    "SOL",
+    "USDC",
+    "USDT", 
+    "BONK", 
+    "JUP", 
+    "RAY", 
+    "ORCA", 
+    "SRM",
+    "WIF", 
+    "PRT", 
+    "MNDE", 
+    "SHDW", 
+    "HNT", 
+    "MOBILE", 
+    "PYTH",
+    "MAPS", 
+    "FIDA", 
+    "MER", 
+    "SNY", 
+    "C98",
 ];
 
 export async function loadTokenList(): Promise<TokenConfig[]> {
@@ -28,7 +45,7 @@ export async function loadTokenList(): Promise<TokenConfig[]> {
         name: t.symbol,
         address: new PublicKey(t.address),
         logo: t.logoURI ?? "",
-        decimals: t.decimals,
+        decimals: t.decimals ?? 6,
     }));
 }
 

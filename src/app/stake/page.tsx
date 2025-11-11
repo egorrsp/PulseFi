@@ -17,13 +17,17 @@ import { checkAuthentication } from "@/helpers/server_api/auth";
 import { createUser, getUserInfo } from "@/helpers/server_api/user_info";
 import { UserInfo } from "@/types/user";
 
+
+
 // dev only
 import { requestAirdropForLocalDev } from "@/helpers/helpers.dev/airdrop";
+
+
 
 export default function Page() {
     const pubkey = useUserStore((s) => s.publicKey);
     const connected = useUserStore((s) => s.connected);
-    const userQuery = useUserProfile();
+    const userQuery_wallet = useUserProfile();
 
     const [isVerify, setIsVerify] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -79,8 +83,8 @@ export default function Page() {
         }
     }, [user])
 
-    if (userQuery.isLoading) return <div>Loading...</div>;
-    const { ready, account, error } = userQuery.data ?? {};
+    if (userQuery_wallet.isLoading) return <div>Loading...</div>;
+    const { ready1, account, error } = userQuery_wallet.data ?? {};
 
     if (isLoading) return <div>Verifying...</div>;
 
@@ -88,7 +92,7 @@ export default function Page() {
         <>
             {connected ? (
                 isVerify ? (
-                    ready ? (
+                    ready1 ? (
                         <div className="flex flex-col gap-16">
                             <TopStakeInfo username={user?.username} />
                             <div className="flex md:flex-row flex-col gap-5">

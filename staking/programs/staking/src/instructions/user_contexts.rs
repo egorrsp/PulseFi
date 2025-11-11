@@ -98,6 +98,13 @@ pub struct UnstakeTokens<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
+    #[account(
+        mut,
+        seeds = [b"admin-state"],
+        bump = admin_state.bump,
+    )]
+    pub admin_state: Account<'info, AdminState>,
+
     #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
 

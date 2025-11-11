@@ -3,7 +3,6 @@
 import { checkAuthentication } from "@/helpers/server_api/auth";
 import { getUserInfo, updateUsername } from "@/helpers/server_api/user_info";
 import { useUserStore } from "@/helpers/store/useUserStore";
-import { UserInfo } from "@/types/user";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -12,7 +11,6 @@ export default function Page() {
     const [isLoading, setIsLoading] = useState(false);
     const [inChange, setInChange] = useState(false);
     const [usernameInput, setUsernameInput] = useState("");
-    const [user, setUser] = useState<UserInfo | null>(null);
 
     const {
         publicKey,
@@ -25,24 +23,10 @@ export default function Page() {
         updateUser,
     } = useUserStore();
 
-
-    useEffect(() => {
-        setUser({
-            public_key: publicKey || "",
-            username,
-            rewards,
-            created_at: createdAt || "",
-            last_seen: lastSeen || "",
-            banned: banned || false,
-            ban_reason: banReason,
-        });
-    }, [publicKey, username, rewards, createdAt, lastSeen, banned, banReason]);
-
     const refreshUserInfo = async () => {
         if (publicKey && (!createdAt || !lastSeen)) {
             try {
                 const response = await getUserInfo(publicKey);
-                setUser(response);
                 updateUser({
                     username: response.username,
                     rewards: response.rewards,

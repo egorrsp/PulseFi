@@ -7,18 +7,17 @@ const dictionary: { [key: string]: string } = {
     "RAY": "raydium",
     "ORCA": "orca",
     "SRM": "serum",
-    "WIF": "wifedoge",
-    "PRT": "port-finance",
+    "WIF": "dogwifcoin",
+    "PRT": "parrot-protocol",
     "MNDE": "mango-markets",
-    "SAMO": "samoyedcoin",
     "SHDW": "shadow-token",
     "HNT": "helium",
     "MOBILE": "mobilecoin",
     "PYTH": "pyth-network",
-    "MAPS": "maps-me",
+    "MAPS": "maps",
     "FIDA": "bonfida",
     "MER": "mercurial",
-    "SNY": "synth-synthetify-network",
+    "SNY": "synthetify-token",
     "C98": "coin98"
 }
 

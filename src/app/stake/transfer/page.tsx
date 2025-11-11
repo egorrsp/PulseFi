@@ -84,12 +84,14 @@ export default function Page() {
                 </p>
 
                 <TokenPriceOrganaiser token={selectedTokenName} onChange={setAmount} />
-                {selectedToken?.address ? (
-                    <ConfirmButton mint={selectedToken.address.toBase58()} amount={new BN(Math.floor(amount * 10 ** selectedToken.decimals))} />
+                {selectedToken?.address && typeof amount === "number" && !isNaN(amount) && amount > 0 ? (
+                    <ConfirmButton
+                        mint={selectedToken.address.toBase58()}
+                        amount={new BN(Math.floor(amount * 10 ** selectedToken.decimals))}
+                    />
                 ) : (
-                    <p>We can't identify mint</p>
-                )
-                }
+                    <p>We can't identify mint or amount</p>
+                )}
             </div>
         </>
     );
