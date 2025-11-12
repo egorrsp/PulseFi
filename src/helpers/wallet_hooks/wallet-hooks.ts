@@ -12,6 +12,8 @@ import { QueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { CONFIG } from "@/config";
 import { ConfigurateTransaction } from "./help-transaction-hooks";
+import { findTokenProfile } from "./deriveAcc";
+import { SecondLevelPda } from "@/app/stake/unstake/confirm/page";
 
 
 export function wallet_hooks() {
@@ -67,7 +69,7 @@ export const createUserProfile = async ({
     publicKey,
     queryClient,
     onAlert,
-}: CreateUserProfileParams) : Promise<CreateUserProfileResult> => {
+}: CreateUserProfileParams): Promise<CreateUserProfileResult> => {
     if (!program || !publicKey) {
         return { ready: false, error: "Missing program or publicKey" };
     }
@@ -95,7 +97,7 @@ export const createUserProfile = async ({
         console.warn("Failed to initialize user profile:", err.message);
 
         if (err.message?.includes("Attempt to debit an account but found no record of a prior credit")) {
-            onAlert?.(true); 
+            onAlert?.(true);
         }
 
         return { ready: false, error: err.message };
@@ -104,7 +106,8 @@ export const createUserProfile = async ({
 
 
 
-// Транзакция, она кастомная - тут определены как последний блокхеш так и плательщик fee
+// Транзакция, она кастомная - тут определены как 
+// последний блокхеш так и плательщик fee
 export async function makeTransaction(
     mint: PublicKey,
     amount: BN,
@@ -125,10 +128,10 @@ export async function makeTransaction(
     }
 
     const master_tx = await ConfigurateTransaction(
-        publicKey, 
-        program, 
-        connection, 
-        mint, 
+        publicKey,
+        program,
+        connection,
+        mint,
         amount
     );
 
@@ -182,4 +185,36 @@ export async function makeTransaction(
         router.push("/stake/result/error-page");
         return;
     }
+}
+
+
+
+export async function GetSecondLevelAccount(tokenAddress: string) {
+    const { program, publicKey, connected } = useUserStore.getState();
+
+    const mint = new PublicKey(tokenAddress);
+    const connection = new Connection(CONFIG.network, { commitment: "confirmed" });
+
+    if (!publicKey || !connected || !mint || !program) {
+        throw new Error("Wallet not connected or program not ready");
+    }
+
+    const tokenPda = findTokenProfile(mint);
+
+    try {
+        const accountInfo = await connection.getAccountInfo(tokenPda);
+        if (!accountInfo) throw new Error("Account not found");
+
+        const coder = new anchor.BorshAccountsCoder(program.idl);
+        const decoded = coder.decode<SecondLevelPda>("userToken", accountInfo.data);
+
+        return decoded;
+    } catch (err) {
+        console.error("Ошибка при получении PDA:", err);
+        throw err;
+    }
+}
+
+export async function UnstakeTokens() {
+
 }

@@ -6,6 +6,7 @@ import { useUserProfile } from "@/helpers/queries/useUserProfile";
 import { checkAuthentication } from "@/helpers/server_api/auth";
 import { getUserInfo } from "@/helpers/server_api/user_info";
 import { useUserStore } from "@/helpers/store/useUserStore";
+import { useSearchParams } from "next/navigation";
 import router from "next/router";
 import { useEffect, useState } from "react";
 
@@ -15,11 +16,9 @@ export default function Page() {
 
     const userQuery_wallet = useUserProfile();
 
-
     const {
         publicKey,
         username,
-        rewards,
         createdAt,
         lastSeen,
         banned,
@@ -77,6 +76,13 @@ export default function Page() {
     if (error) console.log(error);
     if (isLoading) return <div>Verifying...</div>;
     if (!publicKey) return <div>Searching for wallet</div>
+
+    if (banned) return (
+        <div>
+            <p>You are banned</p>
+            <p>Ban reason: {banReason}</p>
+        </div>
+    )
 
     return (
         <>

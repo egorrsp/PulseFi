@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 
@@ -45,6 +46,8 @@ interface TokenListProps {
 
 export function TokenListUnstake(props: TokenListProps) {
 
+    const router = useRouter();
+
     if (!props.tokens) return <p className="text-xl">You don't have any staked tokens yet</p>
 
     return(
@@ -56,7 +59,7 @@ export function TokenListUnstake(props: TokenListProps) {
                         className="flex items-center justify-start cursor-pointer 
                         px-3 py-3 bg-white border border-[#2563EB] rounded-md
                         hover:bg-[#2563EB] hover:text-white ease-in-out duration-150"
-                        
+                        onClick={() => router.push(`/stake/unstake/confirm?token=${token}`)}
                     >
                         <p className="text-xl">{token}</p>
                     </div>
